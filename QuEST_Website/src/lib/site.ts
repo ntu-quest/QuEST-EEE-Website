@@ -23,6 +23,12 @@ export const ROUTING = [
   { about: 'Membership records, minutes, documents', role: 'Honorary General Secretary', user: 'SAHANA012' },
 ] as const;
 
+/* Singular forms for the groups that can legitimately hold one person, so the
+   People page never reads "Faculty advisors" above a single name. */
+export const DEPARTMENT_SINGULAR: Partial<Record<keyof typeof DEPARTMENTS, string>> = {
+  faculty: 'Faculty advisor',
+};
+
 export const DEPARTMENTS = {
   faculty: 'Faculty advisors',
   exco: 'Executive Committee',

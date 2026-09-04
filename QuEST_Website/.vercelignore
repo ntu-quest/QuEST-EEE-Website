@@ -1,0 +1,7 @@
+# The CLI uploads the working directory, so keep the heavy originals out of it.
+# Everything the build needs is committed: public/images/ and public/video/.
+media-src/
+node_modules
+dist
+.astro
+.vercel

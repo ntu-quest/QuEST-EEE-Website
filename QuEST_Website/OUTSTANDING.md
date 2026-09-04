@@ -19,17 +19,16 @@ publishing the ported demos publishes someone's unlicensed work.
 the meantime, set `published: false` in `src/content/demos/*.md` — the route
 disappears and the homepage strip empties itself.
 
-### Photo consent — two files
-Both are in the repository, both are set to `consent: pending`, and **neither
-renders anywhere on the site** until that word changes.
+### Photo consent — one file
+It is in the repository, set to `consent: pending`, and **renders nowhere on
+the site** until that word changes.
 
 | File | Why it is held | Where it would appear |
 |---|---|---|
 | `fallfest_2.JPG` | ~30 identifiable people at CQT. The best photograph you own. | `/about`, `/about/network`, the Fall Fest event page |
-| `mile_gu.jpg` | A portrait, permission not recorded | `/about/journey` |
 
-→ `src/content/media/fallfest-cqt-group.md` and `mile-gu-portrait.md`, change
-`consent: pending` to `granted`.
+→ `src/content/media/fallfest-cqt-group.md`, change `consent: pending` to
+`granted`.
 
 *Already handled:* `workshop_image_1` had a video-call grid with names attached
 to faces in the top-right. It is cropped to the Bloch sphere alone and ships as
@@ -89,7 +88,7 @@ than a wrong guess. Each is one line to correct.
 | **Quantum from Scratch ran on 2 Sept 2026** | The poster says "Sept 2" with no year; it was photographed on 4 Sept 2026. | `src/content/events/quantum-from-scratch.md` |
 | **The MLDA×QCC programme is `completed`** | The old site filed it under "Our Past Initiatives" but also said "we currently have two teams working on…". | `src/content/projects/mlda-quantum-ml.md` |
 | **"180+ members" and "Running since 2025"** | Your instruction. The 180 figure is from the QCC seminar poster; the old site said 165. | `src/pages/index.astro` and `src/pages/about/index.astro`, the `PROOF` arrays |
-| **Faculty advisors have no bios** | Asst Prof Chang Jin and A/P Wong Liang Jie are named on `/research`; nothing more is claimed about either. | `src/content/people/chang-jin.md`, `wong-liang-jie.md` |
+| **Prof. Mile Gu has no blurb** | He is named as the faculty advisor on `/about/people` and `/research` with his portrait; nothing further is claimed. His full title on the old site was "Associate Professor and Deputy Director, Nanyang Quantum Hub" — add it if you want it shown. | `src/content/people/mile-gu.md` |
 | **Four photographs held back** | `qid26_group`, `collab_workshop_board`, `gia_lai_quantum_year`, `pitch_stage` — real photographs I could not caption truthfully because I do not know what the events were. All at `consent: pending`. | `src/content/media/` |
 
 ---

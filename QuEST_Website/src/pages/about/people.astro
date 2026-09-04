@@ -9,7 +9,7 @@ import PageHeader from '../../components/PageHeader.astro';
 import PersonCard from '../../components/PersonCard.astro';
 import CTABand from '../../components/CTABand.astro';
 import { activePeople } from '../../lib/content';
-import { DEPARTMENTS } from '../../lib/site';
+import { DEPARTMENTS, DEPARTMENT_SINGULAR } from '../../lib/site';
 
 const people = await activePeople();
 const group = (key: keyof typeof DEPARTMENTS) => people.filter((p) => p.data.department === key);
@@ -39,7 +39,7 @@ const NOTE: Partial<Record<keyof typeof DEPARTMENTS, string>> = {
     return (
       <section class="section-tight">
         <div class="wrap">
-          <h2 class="dept">{DEPARTMENTS[key]}</h2>
+          <h2 class="dept">{members.length === 1 ? (DEPARTMENT_SINGULAR[key] ?? DEPARTMENTS[key]) : DEPARTMENTS[key]}</h2>
           {NOTE[key] && <p class="dept-note">{NOTE[key]}</p>}
           <div class="people">
             {members.map((person) => (

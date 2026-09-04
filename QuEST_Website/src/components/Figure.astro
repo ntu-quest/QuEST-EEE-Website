@@ -1,0 +1,66 @@
+---
+/* Figure — AVIF with a WebP fallback, a 640px phone variant, explicit width
+   and height so nothing shifts, lazy below the fold and eager for the hero.
+   Alt text comes from the media collection, where the schema requires it.
+
+   Takes a media entry (already checked for consent by src/lib/content.ts), so
+   a photograph awaiting consent cannot reach a page through this component. */
+import type { CollectionEntry } from 'astro:content';
+import { imageFor } from '../lib/images';
+
+interface Props {
+  entry: CollectionEntry<'media'>;
+  eager?: boolean;
+  caption?: boolean;
+  sizes?: string;
+  class?: string;
+  aspect?: string;
+  bare?: boolean;
+}
+const {
+  entry, eager = false, caption = false,
+  sizes = '(max-width: 700px) 100vw, 700px',
+  class: className, aspect, bare = false,
+} = Astro.props;
+
+const { alt, credit, aspect: declared } = entry.data;
+const { width, height, base } = imageFor(entry.data.file);
+const ratio = aspect ?? declared;
+const small = width > 640;
+---
+
+<figure class:list={[bare ? null : 'figure', className]}>
+  <picture>
+    <source
+      type="image/avif"
+      srcset={small ? `/images/${base}-640.avif 640w, /images/${base}.avif ${width}w` : `/images/${base}.avif ${width}w`}
+      sizes={sizes}
+    />
+    <source
+      type="image/webp"
+      srcset={small ? `/images/${base}-640.webp 640w, /images/${base}.webp ${width}w` : `/images/${base}.webp ${width}w`}
+      sizes={sizes}
+    />
+    <img
+      src={`/images/${base}.webp`}
+      alt={alt}
+      width={width}
+      height={height}
+      style={ratio ? `aspect-ratio:${ratio}` : undefined}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      decoding={eager ? 'sync' : 'async'}
+    />
+  </picture>
+  {caption && (entry.data.caption || credit) && (
+    <figcaption>
+      {entry.data.caption}
+      {entry.data.caption && credit && ' '}
+      {credit && <b>{credit}</b>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  figure img { width: 100%; height: auto; object-fit: cover; background: var(--panel-2); }
+</style>

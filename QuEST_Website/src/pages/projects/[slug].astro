@@ -1,0 +1,84 @@
+---
+/* /projects/[slug] — problem · approach · what a new member does · team ·
+   mentor · repo · outputs. The body is written in the Markdown file. */
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Figure from '../../components/Figure.astro';
+import Icon from '../../components/Icon.astro';
+import CTABand from '../../components/CTABand.astro';
+import { projects, media } from '../../lib/content';
+
+export const getStaticPaths = (async () => {
+  const all = await projects();
+  return all.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+const p = project.data;
+const { Content } = await render(project);
+const cover = p.cover ? await media(p.cover) : null;
+
+const STATUS = {
+  open: 'Open to join', active: 'Running now', completed: 'Completed', paused: 'Paused',
+} as const;
+---
+<Base title={p.title} description={p.summary}>
+  <article>
+    <header class="section-tight">
+      <div class="wrap">
+        <p class="eyebrow"><a href="/projects">Projects</a> · {p.area}</p>
+        <h1>{p.title}</h1>
+        <p class="lede">{p.summary}</p>
+        <dl class="facts">
+          <div><dt>Status</dt><dd><span class:list={['badge', p.status === 'open' && 'badge-open', p.status === 'active' && 'badge-active']}><span class="badge-dot" aria-hidden="true"></span>{STATUS[p.status]}</span></dd></div>
+          <div><dt>Started</dt><dd class="mono">{p.started}</dd></div>
+          <div><dt>Level</dt><dd class="mono">{p.difficulty}</dd></div>
+          {p.team.length > 0 && <div><dt>Team</dt><dd class="mono">{p.team.join(', ')}</dd></div>}
+          {p.mentors.length > 0 && <div><dt>Mentors</dt><dd class="mono">{p.mentors.join(', ')}</dd></div>}
+        </dl>
+      </div>
+    </header>
+
+    {cover && (
+      <div class="wrap cover"><Figure entry={cover} caption eager sizes="(max-width: 900px) 100vw, 900px" /></div>
+    )}
+
+    <div class="section-tight">
+      <div class="wrap prose"><Content /></div>
+    </div>
+
+    {(p.repo || p.outputs.length > 0) && (
+      <div class="section-tight">
+        <div class="wrap">
+          <h2>Outputs</h2>
+          <ul class="outputs">
+            {p.repo && <li><a href={p.repo}><Icon name="github" size={18} /> Repository</a></li>}
+            {p.outputs.map((output) => (
+              <li><a href={output.url}><Icon name="arrow" size={18} /> {output.label}</a></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    )}
+  </article>
+
+  <CTABand
+    title={p.status === 'open' ? 'This one is open to new members.' : 'Looking for something to work on?'}
+    href={p.status === 'open' ? '/contact' : '/projects'}
+    action={p.status === 'open' ? 'Write to the lead' : 'See every project'}
+    secondaryHref="/join"
+    secondary="How joining works"
+  />
+</Base>
+<style>
+  h1 { max-width: 20ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin: 2rem 0 0; }
+  .facts div { display: flex; flex-direction: column; gap: 0.3rem; }
+  dt { font-family: var(--mono); font-size: var(--t-fine); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  dd { margin: 0; font-size: var(--t-small); text-transform: capitalize; }
+  .cover { margin-bottom: 1rem; }
+  .outputs { list-style: none; margin: 0; padding: 0; }
+  .outputs li { border-bottom: 1px solid var(--rule); }
+  .outputs a { display: flex; align-items: center; gap: 0.6rem; padding: 0.85rem 0; font-family: var(--display); font-weight: 600; font-size: var(--t-small); text-decoration: none; }
+</style>

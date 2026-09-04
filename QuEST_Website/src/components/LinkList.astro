@@ -1,0 +1,57 @@
+---
+/* LinkRow / LinkList — one data source drives /links, /join and the footer.
+   Every icon has a text label beside it; an icon never carries meaning alone. */
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import ObfuscatedMailto from './ObfuscatedMailto.astro';
+
+interface Props { links: CollectionEntry<'links'>[]; }
+const { links } = Astro.props;
+---
+<ul class="links">
+  {links.map((link) => {
+    const l = link.data;
+    const external = l.url.startsWith('http');
+    const isMail = l.url === 'mailto:president';
+    return (
+      <li>
+        {isMail ? (
+          <div class="row">
+            <span class="ico"><Icon name={l.icon} /></span>
+            <span class="text">
+              <strong><ObfuscatedMailto user="TISORN001" label="Email us" subject="QuEST@EEE — enquiry" /></strong>
+              <span class="desc">{l.description}</span>
+            </span>
+          </div>
+        ) : (
+          <a class="row" href={l.url} rel={external ? 'noopener' : undefined}>
+            <span class="ico"><Icon name={l.icon} /></span>
+            <span class="text">
+              <strong>{l.label}</strong>
+              <span class="desc">{l.description}</span>
+            </span>
+            <span class="go"><Icon name={external ? 'external' : 'arrow'} size={18} /></span>
+          </a>
+        )}
+      </li>
+    );
+  })}
+</ul>
+<style>
+  .links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+  .row {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    background: var(--panel); border: 1px solid var(--rule); border-radius: var(--radius);
+    text-decoration: none; color: inherit;
+    min-height: 64px;
+  }
+  a.row:hover { border-color: var(--accent); }
+  a.row:hover strong { color: var(--accent); }
+  .ico { color: var(--accent); flex: none; margin-top: 2px; }
+  .text { flex: 1; min-width: 0; }
+  strong { display: block; font-family: var(--display); font-weight: 700; font-size: var(--t-small); margin-bottom: 0.15rem; }
+  .desc { display: block; font-size: var(--t-label); color: var(--ink-soft); line-height: 1.5; }
+  .go { color: var(--ink-faint); flex: none; margin-top: 2px; }
+  .row :global(.mailto) { font-family: var(--display); font-size: var(--t-small); }
+</style>

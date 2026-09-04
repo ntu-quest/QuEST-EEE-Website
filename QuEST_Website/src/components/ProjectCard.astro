@@ -1,0 +1,39 @@
+---
+/* ProjectCard — the status badge is load-bearing. "Open to join" gets visual
+   priority, and it is a word as well as a hue: no meaning by colour alone. */
+import type { CollectionEntry } from 'astro:content';
+import Figure from './Figure.astro';
+import { media } from '../lib/content';
+
+interface Props { project: CollectionEntry<'projects'>; }
+const { project } = Astro.props;
+const p = project.data;
+const cover = p.cover ? await media(p.cover) : null;
+
+const STATUS = {
+  open: { label: 'Open to join', class: 'badge-open' },
+  active: { label: 'Running now', class: 'badge-active' },
+  completed: { label: 'Completed', class: '' },
+  paused: { label: 'Paused', class: '' },
+} as const;
+const status = STATUS[p.status];
+---
+<a class="card-link" href={`/projects/${project.id}`}>
+  <article class:list={['card', p.status === 'open' && 'priority']}>
+    {cover && <div class="card-media"><Figure entry={cover} bare aspect="3 / 2" sizes="(max-width: 620px) 100vw, 380px" /></div>}
+    <p class="meta">
+      <span class:list={['badge', status.class]}>
+        <span class="badge-dot" aria-hidden="true"></span>{status.label}
+      </span>
+      <span class="badge">{p.area}</span>
+    </p>
+    <h3>{p.title}</h3>
+    <p>{p.summary}</p>
+    <p class="card-foot mono">Since {p.started} · {p.difficulty}</p>
+  </article>
+</a>
+<style>
+  .meta { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .priority { border-color: var(--marked); }
+  .card-foot { font-size: var(--t-fine); color: var(--ink-faint); text-transform: capitalize; }
+</style>

@@ -1,0 +1,53 @@
+---
+/* ObfuscatedMailto — ExCo addresses are published deliberately, so they are
+   assembled at runtime from data attributes rather than sitting in the HTML
+   for a scraper to lift. The subject line is prefilled so the reply lands in
+   the right thread.
+
+   Without JavaScript the element still shows the address in a readable form
+   ("name at e.ntu.edu.sg"), so nobody is left with no way to make contact. */
+interface Props {
+  user: string;
+  domain?: string;
+  subject?: string;
+  label?: string;
+  class?: string;
+}
+const {
+  user, domain = 'e.ntu.edu.sg',
+  subject = 'QuEST@EEE — enquiry',
+  label, class: className,
+} = Astro.props;
+---
+
+<span
+  class:list={['mailto', className]}
+  data-user={user}
+  data-domain={domain}
+  data-subject={subject}
+  data-label={label}
+>{label ?? `${user} at ${domain}`}</span>
+
+<script>
+  /* Runs once on load and again after a view transition. */
+  const wire = () => {
+    document.querySelectorAll<HTMLElement>('.mailto:not([data-wired])').forEach((node) => {
+      const { user, domain, subject, label } = node.dataset;
+      if (!user || !domain) return;
+      const address = `${user}@${domain}`;
+      const link = document.createElement('a');
+      link.href = `mailto:${address}?subject=${encodeURIComponent(subject ?? '')}`;
+      link.textContent = label || address;
+      link.className = 'mailto-link';
+      node.replaceChildren(link);
+      node.dataset.wired = 'true';
+    });
+  };
+  wire();
+  document.addEventListener('astro:page-load', wire);
+</script>
+
+<style>
+  .mailto { font-family: var(--mono); font-size: var(--t-label); word-break: break-word; }
+  .mailto :global(.mailto-link) { color: var(--accent); }
+</style>

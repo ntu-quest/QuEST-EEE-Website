@@ -1,0 +1,39 @@
+---
+/* ProofStrip — real figures only, tabular numerals, no icons. Proof within one
+   scroll of every claim.
+
+   "8+ months of active initiatives" from the old site is deliberately NOT here:
+   written last year it now reads as a club that stopped. A founding year ages
+   correctly; a month count does not. */
+interface Props { items: { figure: string; label: string }[]; }
+const { items } = Astro.props;
+---
+<ul class="proof">
+  {items.map((item) => (
+    <li>
+      <span class="figure">{item.figure}</span>
+      <span class="label">{item.label}</span>
+    </li>
+  ))}
+</ul>
+<style>
+  .proof {
+    display: grid; gap: var(--gap);
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    list-style: none; margin: 0; padding: 0;
+  }
+  .proof li {
+    border-top: 2px solid var(--ink);
+    padding-top: 1rem;
+  }
+  .figure {
+    display: block;
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(1.75rem, 3.4vw, var(--t-head));
+    letter-spacing: -0.03em; line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.4rem;
+    text-wrap: balance;
+  }
+  .label { display: block; font-size: var(--t-small); color: var(--ink-soft); max-width: 26ch; }
+</style>

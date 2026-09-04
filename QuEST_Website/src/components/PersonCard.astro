@@ -1,0 +1,57 @@
+---
+/* PersonCard — degrades to the monogram. The `blurb` line is missing for
+   everyone right now, so the card simply does not render it. We do not write
+   one on their behalf. */
+import type { CollectionEntry } from 'astro:content';
+import MonogramAvatar from './MonogramAvatar.astro';
+import Figure from './Figure.astro';
+import ObfuscatedMailto from './ObfuscatedMailto.astro';
+import Icon from './Icon.astro';
+import { media } from '../lib/content';
+
+interface Props { person: CollectionEntry<'people'>; }
+const { person } = Astro.props;
+const p = person.data;
+const photo = p.photo ? await media(p.photo) : null;
+const display = p.preferredName ? `${p.name} (${p.preferredName})` : p.name;
+const [user, domain] = (p.email ?? '').split('@');
+---
+
+<article class:list={['person', p.vacancy && 'vacant']}>
+  <div class="portrait">
+    {photo
+      ? <Figure entry={photo} aspect="1 / 1" bare sizes="(max-width: 620px) 45vw, 220px" />
+      : <MonogramAvatar name={p.vacancy ? '?' : p.name} />}
+  </div>
+  <div class="body">
+    <h3>{p.vacancy ? 'Open position' : display}</h3>
+    <p class="role">{p.role}</p>
+    {p.blurb && <p class="blurb">{p.blurb}</p>}
+    {p.vacancy
+      ? <p class="blurb"><slot /></p>
+      : user && domain && (
+        <p class="contact">
+          <ObfuscatedMailto user={user} domain={domain} subject={`QuEST@EEE — ${p.roleShort}`} />
+        </p>
+      )}
+    {(p.links.github || p.links.linkedin) && (
+      <p class="elsewhere">
+        {p.links.linkedin && <a href={p.links.linkedin}><Icon name="linkedin" size={16} /> LinkedIn</a>}
+        {p.links.github && <a href={p.links.github}><Icon name="github" size={16} /> GitHub</a>}
+      </p>
+    )}
+  </div>
+</article>
+
+<style>
+  .person { display: flex; flex-direction: column; gap: 0.9rem; }
+  .portrait { width: 100%; }
+  .portrait :global(figure), .portrait :global(.monogram) { border-radius: var(--radius); overflow: hidden; }
+  h3 { font-size: var(--t-body); margin-bottom: 0.15rem; }
+  .role { font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint); margin: 0 0 0.5rem; line-height: 1.45; }
+  .blurb { font-size: var(--t-small); color: var(--ink-soft); margin: 0 0 0.5rem; }
+  .contact { margin: 0; }
+  .elsewhere { display: flex; gap: 0.9rem; margin: 0.35rem 0 0; }
+  .elsewhere a { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--display); font-size: var(--t-fine); text-decoration: none; }
+  .vacant .role { color: var(--marked); }
+</style>

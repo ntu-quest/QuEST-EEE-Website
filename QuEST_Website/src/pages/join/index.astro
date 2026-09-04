@@ -1,0 +1,75 @@
+---
+/* /join — four doors (BLUEPRINT §08). No forced funnel: someone who already
+   codes reaches a project in one click without reading beginner copy. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import LinkList from '../../components/LinkList.astro';
+import ObfuscatedMailto from '../../components/ObfuscatedMailto.astro';
+import CTABand from '../../components/CTABand.astro';
+import { liveLinks, projects } from '../../lib/content';
+
+const links = await liveLinks('join');
+const open = (await projects()).filter((p) => p.data.status === 'open');
+---
+<Base title="Join QuEST" description="Four ways into QuEST@EEE, depending on what you want out of it.">
+  <PageHeader
+    eyebrow="Join"
+    title="Four doors. Pick the one that sounds like you."
+    lede="Not knowing anything is a fine place to start — most of us did. Not knowing which door is also fine: take the first one."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="doors">
+        <article class="door">
+          <p class="card-num">01</p>
+          <h2>I want to learn</h2>
+          <p>Join the Telegram group and come to a session. No form, no commitment, no prerequisite.</p>
+          <p><a class="btn" href="https://t.me/+F4ofanIj4lJmNmY1">Join the group</a></p>
+        </article>
+
+        <article class="door">
+          <p class="card-num">02</p>
+          <h2>I want to build</h2>
+          <p>
+            {open.length
+              ? `There ${open.length === 1 ? 'is' : 'are'} ${open.length} project${open.length === 1 ? '' : 's'} open to new members right now.`
+              : 'Projects open to new members are listed as they open.'}
+            Read what the work is, then write to the lead named on it.
+          </p>
+          <p><a class="btn btn-ghost" href="/projects?status=open">Projects open to join</a></p>
+        </article>
+
+        <article class="door">
+          <p class="card-num">03</p>
+          <h2>I want to research</h2>
+          <p>Mentored initiatives, URECA supervision, and the route from a literature review to an output. Write to the President with what you are interested in.</p>
+          <p><ObfuscatedMailto user="TISORN001" label="Email the President" subject="QuEST@EEE — joining a research initiative" /></p>
+        </article>
+
+        <article class="door">
+          <p class="card-num">04</p>
+          <h2>I want to contribute</h2>
+          <p>Run the workshops, shoot the posters, keep the site alive. Sub-committee recruitment opens each cycle; the form below is live while a cycle is running.</p>
+          <p><a class="btn btn-ghost" href="/join/roles">See the departments</a></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Everything in one place</h2>
+      <LinkList links={links} />
+    </div>
+  </section>
+
+  <CTABand title="Still not sure which one?" href="/contact" action="Ask us" secondaryHref="/explore/what-we-do" secondary="Or read what we actually do" />
+</Base>
+<style>
+  .doors { display: grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .door { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--panel); padding: 1.75rem; }
+  .door h2 { font-size: var(--t-sub); }
+  .door p { color: var(--ink-soft); }
+  @media (max-width: 760px) { .doors { grid-template-columns: minmax(0, 1fr); } }
+</style>

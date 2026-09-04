@@ -1,0 +1,90 @@
+---
+/* /about/network — reach and track record, for a partner deciding whether to
+   co-run something. Every entry names the thing that actually happened; a
+   partner with no evidence attached is not on this page.
+
+   Partner logos are NOT displayed: never display a mark without asking. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Figure from '../../components/Figure.astro';
+import ObfuscatedMailto from '../../components/ObfuscatedMailto.astro';
+import CTABand from '../../components/CTABand.astro';
+import { sorted, media } from '../../lib/content';
+
+const partners = await sorted('partners');
+const philosophy = await media('quantum-x-philosophy');
+const fallfest = await media('fallfest-speaker');
+
+const KINDS = {
+  university: 'Universities', club: 'Student groups', institute: 'Research institutes',
+  industry: 'Industry', internal: 'Inside NTU',
+} as const;
+const order: (keyof typeof KINDS)[] = ['internal', 'club', 'institute', 'university', 'industry'];
+---
+<Base title="Our network" description="Who QuEST@EEE works with, and what we have actually run together.">
+  <PageHeader
+    eyebrow="About"
+    title="Who we work with"
+    lede="Each row names the thing we ran together, not an intention to run something. If you are thinking about co-hosting, the last row of this page is the address to write to."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      {order.map((kind) => {
+        const group = partners.filter((p) => p.data.kind === kind && p.data.active);
+        if (!group.length) return null;
+        return (
+          <div class="group">
+            <h2 class="rule">{KINDS[kind]}</h2>
+            <ul class="partners">
+              {group.map((partner) => (
+                <li>
+                  <div class="who">
+                    <strong>{partner.data.url ? <a href={partner.data.url}>{partner.data.name}</a> : partner.data.name}</strong>
+                    <span class="country mono">{partner.data.country}</span>
+                  </div>
+                  <p class="what">{partner.data.what}</p>
+                  {partner.data.evidence && <p class="ev"><a class="text-link" href={partner.data.evidence}>See it →</a></p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid grid-2">
+        {philosophy && <Figure entry={philosophy} caption sizes="(max-width: 760px) 100vw, 45vw" />}
+        {fallfest && <Figure entry={fallfest} caption sizes="(max-width: 760px) 100vw, 45vw" />}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap prose">
+      <h2>Working with us</h2>
+      <p>
+        We co-run sessions with other student groups, host visiting speakers, and send cohorts to
+        other institutions' events. What we can offer a partner is a room of undergraduates who
+        have already done the groundwork, and a committee that will do the logistics properly.
+      </p>
+      <p><ObfuscatedMailto user="ANIKET003" label="Email Business & Outreach" subject="QuEST@EEE — collaboration" /></p>
+    </div>
+  </section>
+
+  <CTABand title="Bring us something to run." href="/contact" action="Get in touch" secondaryHref="/events" secondary="See what we've run" />
+</Base>
+<style>
+  .group { margin-bottom: 2.5rem; }
+  .rule { padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); margin-bottom: 1rem; }
+  .partners { list-style: none; margin: 0; padding: 0; }
+  .partners li { padding: 1.1rem 0; border-bottom: 1px solid var(--rule); }
+  .who { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+  .who strong { font-family: var(--display); font-size: var(--t-lead); font-weight: 700; }
+  .country { font-size: var(--t-fine); color: var(--ink-faint); }
+  .what { color: var(--ink-soft); font-size: var(--t-small); max-width: var(--measure); margin: 0; }
+  .ev { margin: 0.6rem 0 0; }
+</style>

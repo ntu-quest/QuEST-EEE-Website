@@ -1,0 +1,229 @@
+---
+/* Home — Inform · Convert · Express (BLUEPRINT §06).
+ *
+ * The 3 / 30 / 3 test: three seconds to learn what QuEST is, thirty to learn
+ * what you would do here, three minutes to find your thing and act on it.
+ *
+ * Cut from this page deliberately: the culture manifesto, the full network map,
+ * People, the resources router, the full timeline, the second philosophy
+ * section. All of them exist as pages. */
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+import Field from '../components/Field.astro';
+import Figure from '../components/Figure.astro';
+import ProofStrip from '../components/ProofStrip.astro';
+import StatementBlock from '../components/StatementBlock.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import EventCard from '../components/EventCard.astro';
+import StackDiagram from '../components/StackDiagram.astro';
+import Timeline from '../components/Timeline.astro';
+import CTABand from '../components/CTABand.astro';
+import Icon from '../components/Icon.astro';
+import { media, projects, demos, upcomingEvents, sorted } from '../lib/content';
+import { SITE } from '../lib/site';
+
+const hero = await media('workshop-whiteboard');
+const allProjects = await projects();
+const featured = allProjects.slice(0, 3);
+const allDemos = await demos();
+const next = (await upcomingEvents()).slice(0, 2);
+const stackNodes = await sorted('stack');
+const milestones = await sorted('milestones');
+
+const WHAT = [
+  {
+    title: 'Learn',
+    body: 'Build strong fundamentals through structured workshops and curated resources, designed by students for students across disciplines.',
+    href: '/explore/what-we-do',
+  },
+  {
+    title: 'Build',
+    body: 'Practise with real tools and real exercises — quantum circuits, algorithms and NISQ-era workflows — without assuming prior exposure.',
+    href: '/demos',
+  },
+  {
+    title: 'Research',
+    body: 'Join mentored projects that train students to execute research-grade work and communicate results to professional standards.',
+    href: '/research',
+  },
+  {
+    title: 'Explore',
+    body: 'Quantum is not one subject. Software, physics and hardware each answer a different question, and you are allowed to find out which one is yours.',
+    href: '/explore/quantum-stack',
+  },
+];
+
+const PROOF = [
+  { figure: "Singapore's first", label: 'undergraduate, student-run quantum-centric club' },
+  { figure: '180+ members', label: 'across NTU, and growing' },
+  { figure: 'Running since 2025', label: 'workshops, projects and a cross-campus festival' },
+  { figure: '4 live demos', label: 'you can use in your browser right now' },
+];
+---
+
+<Base title={SITE.name} description={SITE.description}>
+  <section class="hero">
+    <Field />
+    <div class="wrap-wide hero-inner">
+      <div class="hero-text">
+        <Logo height={180} class="hero-mark" />
+        <h1>Don't follow the path. Explore it.</h1>
+        <p class="lede">
+          QuEST@EEE is the quantum interest club at NTU's School of Electrical &amp; Electronic
+          Engineering. We run workshops, build things, and take students with no quantum background
+          to research-grade work.
+        </p>
+        <p class="hero-actions">
+          <a class="btn" href="/join">Join QuEST</a>
+          <a class="text-link" href="/demos">Try a demo →</a>
+        </p>
+      </div>
+      <div class="hero-photo">
+        <Figure entry={hero} eager caption sizes="(max-width: 900px) 100vw, 46vw" />
+      </div>
+    </div>
+  </section>
+
+  <StatementBlock>
+    You don't have to know what you want to become. You just have to be willing to explore.
+  </StatementBlock>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What QuEST is</p>
+        <h2>Four things, and you can start at any of them</h2>
+      </div>
+      <div class="grid grid-4">
+        {WHAT.map((item, index) => (
+          <a class="card-link" href={item.href}>
+            <article class="card">
+              <p class="card-num">{String(index + 1).padStart(2, '0')}</p>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <ProofStrip items={PROOF} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Try it</p>
+        <h2>Four demos. Each one has a moment you cause yourself.</h2>
+        <p>
+          They run in your browser, they run offline, and every number on screen is checked against
+          the original paper by a test suite.
+        </p>
+      </div>
+      <div class="grid grid-4">
+        {allDemos.map((demo) => (
+          <a class="card-link" href={`/demos/${demo.id}`}>
+            <article class="card demo-card">
+              <p class="card-num">Station {demo.data.station} · {demo.data.concept}</p>
+              <h3>{demo.data.title}</h3>
+              <p>{demo.data.hook}</p>
+              <p class="card-foot"><span class="text-link">Open it →</span></p>
+            </article>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap-wide">
+      <div class="section-head">
+        <p class="eyebrow">The Quantum Stack</p>
+        <h2>Three branches, one set of applications</h2>
+        <p>
+          Software, physics and hardware each answer a different question about the same machine.
+          Most people arrive wanting one of them and discover they wanted another.
+        </p>
+      </div>
+      <StackDiagram nodes={stackNodes} />
+      <p class="after"><a class="text-link" href="/explore/quantum-stack">Open the full map →</a></p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Projects</p>
+        <h2>Work with a name on it and a deliverable at the end</h2>
+      </div>
+      <div class="grid grid-3">
+        {featured.map((project) => <ProjectCard project={project} />)}
+      </div>
+      <p class="after"><a class="text-link" href="/projects">All projects →</a></p>
+    </div>
+  </section>
+
+  {/* Empty means the block does not render at all. An "upcoming events" heading
+      above last semester's date does more damage than having no site. */}
+  {next.length > 0 && (
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Next up</p>
+          <h2>What's on</h2>
+        </div>
+        <div class="grid grid-2">
+          {next.map((event) => <EventCard event={event} />)}
+        </div>
+        <p class="after"><a class="text-link" href="/events">All events →</a></p>
+      </div>
+    </section>
+  )}
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The journey</p>
+        <h2>How we got here</h2>
+      </div>
+      <Timeline milestones={milestones} compact />
+      <p class="after"><a class="text-link" href="/about/journey">The whole story →</a></p>
+    </div>
+  </section>
+
+  <CTABand
+    title="Explore. Build. Question. Become."
+    href="/join"
+    action="Join QuEST"
+    secondaryHref="/about"
+    secondary="Who we are"
+  />
+</Base>
+
+<style>
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--rule); }
+  .hero-inner {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+  }
+  .hero-text :global(.hero-mark) { margin-bottom: 1.75rem; }
+  .hero h1 { font-size: clamp(2.5rem, 6.4vw, var(--t-title)); max-width: 15ch; }
+  .hero .lede { margin-bottom: 1.75rem; }
+  .hero-actions { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin: 0; }
+  .hero-photo :global(.figure) { box-shadow: var(--elevation); }
+
+  .after { margin-top: 2rem; }
+  .demo-card .card-num { color: var(--ice); }
+
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: minmax(0, 1fr); }
+    .hero-text :global(.hero-mark) { --logo-h: 110px !important; }
+    .hero-text :global(.hero-mark img) { height: 110px; }
+  }
+</style>

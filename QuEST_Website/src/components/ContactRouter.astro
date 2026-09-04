@@ -1,0 +1,27 @@
+---
+/* ContactRouter — "if your question is about… email…". A mailto: lands in an
+   inbox already being read, and this table does the triage a contact form
+   would need a backend and a volunteer to do. */
+import ObfuscatedMailto from './ObfuscatedMailto.astro';
+import { ROUTING } from '../lib/site';
+---
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr><th scope="col">If your question is about…</th><th scope="col">Who</th><th scope="col">Email</th></tr>
+    </thead>
+    <tbody>
+      {ROUTING.map((row) => (
+        <tr>
+          <td>{row.about}</td>
+          <td class="role">{row.role}</td>
+          <td><ObfuscatedMailto user={row.user} subject={`QuEST@EEE — ${row.about}`} /></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<style>
+  .role { font-family: var(--display); font-weight: 600; font-size: var(--t-label); white-space: nowrap; }
+  td { font-size: var(--t-small); }
+</style>

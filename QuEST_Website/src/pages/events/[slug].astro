@@ -1,0 +1,96 @@
+---
+/* /events/[slug] — doubles as the standalone sign-up landing page a poster QR
+   points at, so it has to make sense with no nav and no context.
+
+   EUSO process: publicity reaches the staff advisor at least 3 working days
+   before dissemination, with the poster and a sign-off. Build this page and its
+   short link into that submission, not after it. */
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Figure from '../../components/Figure.astro';
+import Icon from '../../components/Icon.astro';
+import CTABand from '../../components/CTABand.astro';
+import { events, mediaList, DATE, TIME } from '../../lib/content';
+
+export const getStaticPaths = (async () => {
+  const all = await events();
+  return all.map((event) => ({ params: { slug: event.id }, props: { event } }));
+}) satisfies GetStaticPaths;
+
+const { event } = Astro.props;
+const e = event.data;
+const { Content } = await render(event);
+const photos = await mediaList(e.photos);
+const upcoming = e.status === 'upcoming' && e.start.getTime() > Date.now();
+---
+<Base title={e.title} description={`${e.title} — ${DATE.format(e.start)}, ${e.venue}.`}>
+  <article>
+    <header class="section-tight">
+      <div class="wrap">
+        <p class="eyebrow"><a href="/events">Events</a> · {e.series.replace('-', ' ')}</p>
+        <h1>{e.title}</h1>
+        <dl class="facts">
+          <div>
+            <dt>When</dt>
+            <dd class="mono">
+              <time datetime={e.start.toISOString()}>{DATE.format(e.start)}</time><br />
+              {TIME.format(e.start)}{e.end && `–${TIME.format(e.end)}`}
+            </dd>
+          </div>
+          <div><dt>Where</dt><dd class="mono">{e.venue}</dd></div>
+          <div><dt>Format</dt><dd class="mono">{e.format}</dd></div>
+          <div><dt>Who it's for</dt><dd class="mono">{e.audience}</dd></div>
+          {e.speaker && <div><dt>Speaker</dt><dd class="mono">{e.speaker}</dd></div>}
+          {e.collaborators.length > 0 && <div><dt>With</dt><dd class="mono">{e.collaborators.join(', ')}</dd></div>}
+          {e.attendance && <div><dt>Attended</dt><dd class="mono">{e.attendance}</dd></div>}
+        </dl>
+        {upcoming && e.registerUrl && (
+          <p class="register"><a class="btn" href={e.registerUrl}><Icon name="form" size={18} /> Register</a></p>
+        )}
+        {!upcoming && <p class="past mono">This event has happened. The write-up is below.</p>}
+      </div>
+    </header>
+
+    {photos.length > 0 && (
+      <div class="wrap gallery">
+        {photos.map((photo, index) => (
+          <Figure entry={photo} caption eager={index === 0} sizes="(max-width: 760px) 100vw, 45vw" />
+        ))}
+      </div>
+    )}
+
+    {e.learningOutcomes.length > 0 && (
+      <section class="section-tight">
+        <div class="wrap">
+          <h2>What it covers</h2>
+          <ul class="outcomes">
+            {e.learningOutcomes.map((outcome) => <li>{outcome}</li>)}
+          </ul>
+        </div>
+      </section>
+    )}
+
+    <div class="section-tight"><div class="wrap prose"><Content /></div></div>
+  </article>
+
+  <CTABand
+    title={upcoming ? "Can't make it? Hear about the next one." : 'Come to the next one.'}
+    href="https://t.me/+F4ofanIj4lJmNmY1"
+    action="Join the group"
+    secondaryHref="/events"
+    secondary="All events"
+  />
+</Base>
+<style>
+  h1 { max-width: 20ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin: 2rem 0 0; }
+  .facts div { display: flex; flex-direction: column; gap: 0.3rem; }
+  dt { font-family: var(--mono); font-size: var(--t-fine); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+  dd { margin: 0; font-size: var(--t-small); line-height: 1.5; }
+  .register { margin-top: 2rem; }
+  .past { margin-top: 2rem; font-size: var(--t-fine); color: var(--ink-faint); }
+  .gallery { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); margin-bottom: 1rem; }
+  .outcomes { padding-left: 1.25rem; max-width: var(--measure); }
+  .outcomes li { margin-bottom: 0.5rem; color: var(--ink-soft); }
+</style>

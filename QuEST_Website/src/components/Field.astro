@@ -1,0 +1,28 @@
+---
+/* The §11 interference field. Homepage hero and the /demos header ONLY.
+   aria-hidden: it carries no information a reader needs, and it requires no
+   keyboard interaction. */
+---
+
+<div class="field" data-field aria-hidden="true">
+  <canvas></canvas>
+</div>
+
+<script>
+  import { mountField } from '../scripts/field';
+  document.querySelectorAll<HTMLElement>('[data-field]').forEach(mountField);
+</script>
+
+<style>
+  .field {
+    position: absolute; inset: 0; z-index: 0;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+  .field canvas {
+    width: 100%; height: 100%;
+    /* The buffer is one sixth of display resolution; letting the browser
+       smooth it back up is where the softness comes from. */
+    image-rendering: auto;
+  }
+</style>

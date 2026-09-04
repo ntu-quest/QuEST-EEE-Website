@@ -1,0 +1,28 @@
+---
+/* CTABand — foot of every page. Names the NEXT rung on the journey spine
+   (§05), never the last one. One primary action; two equal buttons is zero
+   primary buttons. */
+interface Props {
+  title: string;
+  href: string;
+  action: string;
+  secondaryHref?: string;
+  secondary?: string;
+}
+const { title, href, action, secondaryHref, secondary } = Astro.props;
+---
+<section class="cta">
+  <div class="wrap inner">
+    <h2>{title}</h2>
+    <p class="actions">
+      <a class="btn" href={href}>{action}</a>
+      {secondary && secondaryHref && <a class="text-link" href={secondaryHref}>{secondary} →</a>}
+    </p>
+  </div>
+</section>
+<style>
+  .cta { border-top: 1px solid var(--rule); background: var(--panel); padding-block: clamp(3rem, 6vw, 4.5rem); }
+  .inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .cta h2 { margin: 0; max-width: 24ch; }
+  .actions { display: flex; align-items: center; gap: 1.25rem; margin: 0; flex-wrap: wrap; }
+</style>

@@ -1,0 +1,54 @@
+---
+/* /links — the Instagram bio destination. Replaces the Linktree, which still
+   carries the club's former name. Deliberately bare: no nav, no footer nav,
+   nothing between arriving and tapping the thing you came for. */
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+import LinkList from '../components/LinkList.astro';
+import { liveLinks, upcomingEvents } from '../lib/content';
+import { SITE } from '../lib/site';
+
+const links = await liveLinks('links');
+/* The registration row appears automatically when an event is dated in the
+   future and carries a registerUrl, and disappears again on its own. */
+const next = (await upcomingEvents()).filter((e) => e.data.registerUrl).slice(0, 1);
+---
+<Base title="Links" description="Everything QuEST@EEE, in one place." bare>
+  <div class="page">
+    <div class="wrap card-col">
+      <a href="/" class="mark"><Logo height={120} /></a>
+      <p class="tag">{SITE.long} · NTU EEE</p>
+      <h1 class="line">{SITE.tagline}</h1>
+
+      {next.map((event) => (
+        <a class="register" href={`/events/${event.id}`}>
+          <span class="badge badge-open"><span class="badge-dot" aria-hidden="true"></span>Registration open</span>
+          <strong>{event.data.title}</strong>
+        </a>
+      ))}
+
+      <LinkList links={links} />
+
+      <nav class="more" aria-label="The rest of the site">
+        <a href="/">Home</a><a href="/demos">Demos</a><a href="/projects">Projects</a>
+        <a href="/events">Events</a><a href="/about">About</a><a href="/contact">Contact</a>
+      </nav>
+    </div>
+  </div>
+</Base>
+<style>
+  .page { min-height: 100vh; display: grid; place-items: start center; padding-block: clamp(2rem, 6vw, 4rem); }
+  .card-col { max-width: 34rem; text-align: center; }
+  .mark { display: inline-block; margin-bottom: 1rem; }
+  .tag { font-family: var(--mono); font-size: var(--t-fine); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 0.5rem; }
+  .line { font-family: var(--display); font-weight: 800; font-size: var(--t-sub); letter-spacing: -0.02em; margin: 0 0 2rem; }
+  .register {
+    display: block; text-align: left; text-decoration: none; color: inherit;
+    padding: 1.1rem 1.25rem; margin-bottom: 0.75rem;
+    border: 1px solid var(--marked); border-radius: var(--radius); background: var(--marked-soft);
+  }
+  .register strong { display: block; font-family: var(--display); font-size: var(--t-small); margin-top: 0.5rem; }
+  .more { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1rem; margin-top: 2.5rem; }
+  .more a { font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint); text-decoration: none; }
+  .more a:hover { color: var(--accent); }
+</style>

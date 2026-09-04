@@ -1,0 +1,109 @@
+---
+/* Footer — nav repeat, the link hub off one data source, contact, and the
+   NTU EEE attribution. Also carries the removal path for photographs, which
+   the consent model in §18 depends on existing. */
+import Icon from './Icon.astro';
+import ObfuscatedMailto from './ObfuscatedMailto.astro';
+import { liveLinks } from '../lib/content';
+import { SITE } from '../lib/site';
+
+const links = await liveLinks('footer');
+const year = new Date().getFullYear();
+
+const COLUMNS = [
+  { title: 'Explore', items: [
+    { label: 'What we do', href: '/explore/what-we-do' },
+    { label: 'The Quantum Stack', href: '/explore/quantum-stack' },
+    { label: 'Resources', href: '/explore/resources' },
+    { label: 'Demos', href: '/demos' },
+  ]},
+  { title: 'The work', items: [
+    { label: 'Projects', href: '/projects' },
+    { label: 'Research', href: '/research' },
+    { label: 'Events', href: '/events' },
+  ]},
+  { title: 'About', items: [
+    { label: 'Who we are', href: '/about' },
+    { label: 'Our journey', href: '/about/journey' },
+    { label: 'Our culture', href: '/about/culture' },
+    { label: 'People', href: '/about/people' },
+    { label: 'Network', href: '/about/network' },
+  ]},
+  { title: 'Join in', items: [
+    { label: 'Join QuEST', href: '/join' },
+    { label: 'Roles and departments', href: '/join/roles' },
+    { label: 'Contact', href: '/contact' },
+    { label: 'All links', href: '/links' },
+  ]},
+];
+---
+
+<footer class="foot">
+  <div class="wrap-wide">
+    <div class="cols">
+      {COLUMNS.map((col) => (
+        <nav aria-labelledby={`foot-${col.title.replace(/\s+/g, '-').toLowerCase()}`}>
+          <h2 class="eyebrow" id={`foot-${col.title.replace(/\s+/g, '-').toLowerCase()}`}>{col.title}</h2>
+          <ul>{col.items.map((i) => <li><a href={i.href}>{i.label}</a></li>)}</ul>
+        </nav>
+      ))}
+      <div class="social">
+        <h2 class="eyebrow" id="foot-elsewhere">Elsewhere</h2>
+        <ul aria-labelledby="foot-elsewhere">
+          {links.map((link) => (
+            <li>
+              <a href={link.data.url === 'mailto:president' ? undefined : link.data.url}
+                 rel={link.data.url.startsWith('http') ? 'me noopener' : undefined}>
+                <Icon name={link.data.icon} size={18} />
+                {link.data.url === 'mailto:president'
+                  ? <ObfuscatedMailto user="TISORN001" label="Email us" subject="QuEST@EEE — enquiry" />
+                  : <span>{link.data.label}</span>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <div class="base">
+      <p class="mono">
+        <strong>{SITE.name}</strong> · {SITE.long} · {SITE.school}
+      </p>
+      <p class="mono fine">
+        © {year} QuEST@EEE. Built by students. Photographs are of our own members and events —
+        if you appear in one and would like it removed, email the Publicity Lead from
+        <a href="/contact">the contact page</a> and it comes down.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    border-top: 1px solid var(--rule);
+    background: var(--panel);
+    padding-block: 3.5rem 2.5rem;
+    margin-top: 0;
+  }
+  .cols {
+    display: grid; gap: 2rem;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 460px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { margin-bottom: 0.45rem; }
+  .cols a {
+    font-family: var(--display); font-weight: 500; font-size: var(--t-small);
+    color: var(--ink-soft); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .cols a:hover { color: var(--accent); }
+  .social :global(.mailto) { font-family: var(--display); font-size: var(--t-small); }
+
+  .base { margin-top: 2.75rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+  .base p { font-size: var(--t-label); color: var(--ink-soft); margin-bottom: 0.5rem; }
+  .base .fine { font-size: var(--t-fine); color: var(--ink-faint); max-width: 62ch; }
+  .base strong { color: var(--ink); font-weight: 500; }
+</style>

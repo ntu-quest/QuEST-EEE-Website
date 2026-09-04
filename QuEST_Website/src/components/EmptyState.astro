@@ -1,0 +1,11 @@
+---
+/* EmptyState — never a blank grid. An index page with nothing in it says so,
+   in words, and points at the thing that does exist. */
+interface Props { title: string; href?: string; action?: string; }
+const { title, href, action } = Astro.props;
+---
+<div class="empty">
+  <strong>{title}</strong>
+  <slot />
+  {href && action && <p style="margin-top:.75rem"><a class="text-link" href={href}>{action} →</a></p>}
+</div>

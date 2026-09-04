@@ -1,0 +1,249 @@
+/* ---------------------------------------------------------------------------
+ * demo.css — the booth's component classes, rebuilt on the site's tokens.
+ *
+ * The booth's own shared.css stays untouched in public/demos/ and drives the
+ * offline bundle. This file styles the same class names for the website: the
+ * markup is the booth's, the physics is the booth's, the look is the site's.
+ *
+ * Differences from shared.css, all deliberate:
+ *   - light is the default here; the booth commits to dark for a hall screen
+ *   - no gradients (§10) — the booth uses a soft internal wash on panels
+ *   - the site type scale, and Manrope/Lora/DM Mono rather than one family
+ *   - radius 4px, not 14px
+ *
+ * Saturated colour still belongs to MARKS only — bars, needles, thumbs, dots.
+ * ------------------------------------------------------------------------- */
+
+.demo { --gap: 1.25rem; }
+
+/* ---- panels -------------------------------------------------------------- */
+
+.demo .panels { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 980px) {
+  .demo .panels.two { grid-template-columns: 1fr 1fr; }
+  .demo .panels.wide-left { grid-template-columns: 1.35fr 1fr; }
+}
+
+.demo .panel {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem 1.25rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+  min-width: 0;
+  box-shadow: var(--elevation);
+}
+.demo .panel[hidden] { display: none; }
+.demo .panel h2 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--t-fine); font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.demo .panel canvas { width: 100%; display: block; touch-action: manipulation; }
+
+/* ---- readout ------------------------------------------------------------- */
+
+.demo .readout { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; }
+.demo .readout .value {
+  font-family: var(--display); font-weight: 700;
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+  font-size: clamp(2.4rem, 6vw, 3.9rem);
+  letter-spacing: -0.03em; line-height: 1;
+  color: var(--ink);
+}
+/* State is never carried by colour alone — the caption beside every one of
+   these says in words what the number means. */
+.demo .readout .value.good { color: var(--tint-good); }
+.demo .readout .value.warn { color: var(--tint-warn); }
+.demo .readout .value.bad { color: var(--tint-bad); }
+.demo .readout .caption {
+  font-family: var(--body);
+  color: var(--ink-soft); font-size: var(--t-small); max-width: 44ch;
+}
+
+.demo .dual { display: flex; gap: 2.25rem; flex-wrap: wrap; }
+.demo .dual-item { display: flex; flex-direction: column; gap: 0.3rem; }
+.demo .dual-label {
+  font-family: var(--mono); font-size: var(--t-fine); font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint);
+}
+
+.demo .pill {
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  font-family: var(--mono); font-size: var(--t-label);
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--panel-2); color: var(--ink-soft);
+}
+.demo .pill::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ink-faint); flex: 0 0 auto;
+}
+.demo .pill.good::before { background: var(--good); }
+.demo .pill.warn::before { background: var(--marked); }
+.demo .pill.bad::before { background: var(--bad); }
+.demo .pill.no-dot::before { display: none; }
+.demo .attract-note { font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint); }
+.demo .attract-note[hidden] { display: none; }
+
+/* ---- controls, and the dock --------------------------------------------- */
+
+.demo .controls {
+  display: grid; gap: 1rem 1.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  align-items: start;
+}
+.demo .knob { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+.demo .knob[hidden] { display: none; }
+.demo .knob-label { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+.demo .knob-name { font-family: var(--display); font-weight: 600; font-size: var(--t-small); }
+.demo .knob-hint { font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint); line-height: 1.45; }
+.demo .knob-hint.live { color: var(--ink-soft); }
+.demo .knob-hint.dead { color: var(--ink-faint); font-style: italic; }
+.demo .knob-value {
+  font-family: var(--mono); font-size: var(--t-small); font-weight: 500;
+  font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+  color: var(--ink);
+}
+
+.demo input[type='range'] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 40px; background: transparent; margin: 0; cursor: pointer;
+}
+.demo input[type='range']::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px; background: var(--panel-3);
+}
+.demo input[type='range']::-moz-range-track {
+  height: 4px; border-radius: 2px; background: var(--panel-3);
+}
+/* The thumb is a mark, so it may carry colour. */
+.demo input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ice); border: 3px solid var(--wash);
+  margin-top: -9px;
+}
+.demo input[type='range']::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ice); border: 3px solid var(--wash);
+}
+.demo input[type='range']:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.demo button {
+  font-family: var(--display); font-size: var(--t-label); font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--panel-2);
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 0.6rem 1rem; min-height: 44px; cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+.demo button:hover { color: var(--ink); background: var(--panel-3); }
+.demo button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.demo button[hidden] { display: none; }
+.demo button[aria-pressed='true'] {
+  color: var(--accent); background: var(--accent-soft); border-color: var(--accent);
+}
+.demo button.primary { color: var(--wash); background: var(--accent); border-color: var(--accent); }
+.demo button.primary:hover { color: var(--wash); background: var(--ink); border-color: var(--ink); }
+.demo button:disabled { opacity: 0.38; cursor: not-allowed; }
+.demo .button-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+@media (prefers-reduced-motion: reduce) { .demo button { transition: none; } }
+
+/* ---- the maths ----------------------------------------------------------- */
+
+.demo .maths-body { display: flex; flex-direction: column; gap: 1rem; color: var(--ink-soft); }
+.demo .maths-body p { margin: 0; max-width: 72ch; font-size: var(--t-body); line-height: 1.7; }
+.demo .maths-body strong { color: var(--ink); font-weight: 600; font-family: var(--display); }
+.demo .maths-body em { color: var(--ink); font-style: italic; }
+.demo .maths-head {
+  margin: 1rem 0 0; color: var(--ink);
+  font-family: var(--display); font-size: var(--t-lead); font-weight: 700;
+  letter-spacing: -0.015em; padding-top: 1.1rem; border-top: 1px solid var(--rule);
+}
+.demo .warn-line { color: var(--ink-soft); }
+.demo .warn-line:empty { display: none; }
+
+/* A derivation reads as one argument: indented, hairline rail, no colour. */
+.demo .derivation {
+  border-left: 1px solid var(--rule);
+  padding: 2px 0 2px 1.25rem;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+
+/* mathfmt.js emits native MathML set in a serif face. Lora is the site's
+   reading voice and carries it without importing another family. */
+/* MathML renders a subscript at roughly 0.71em of its context. At a 16px base
+   that is an 11.4px glyph, which breaks the 12px floor — so the equations are
+   set from the body size up, not down. It reads better in a long derivation
+   anyway. */
+.demo .eq { font-family: var(--math); }
+.demo .eq[data-display] {
+  display: block; overflow-x: auto; overflow-y: hidden;
+  padding: 0.35rem 0; font-size: 1.15em;
+}
+.demo math { font-family: var(--math); }
+
+/* MathML shrinks each script level by ~0.71, so a subscript of a subscript
+   lands near 10px. `max(1em, …)` is the identity everywhere the context is
+   already big enough and a floor everywhere it is not, which keeps the
+   notation's relative sizing while holding the 12px floor. The same floor
+   applies to ordinary sup/sub in captions and running text. */
+.demo math :is(mi, mn, mo, mtext),
+.demo :is(sub, sup) { font-size: max(1em, 0.78125rem); }
+.demo .mf-align { display: inline-table; }
+
+/* ---- the circuit --------------------------------------------------------- */
+
+.demo figure.circuit {
+  margin: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 1.1rem 1.25rem 1rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.9rem;
+}
+/* The circuit SVGs are drawn black-on-white with filled gate boxes; the fill
+   is what hides the wire behind each gate, so the stage stays white in both
+   themes rather than letting every wire run through its own gate. */
+.demo .circuit-stage {
+  position: relative; width: 100%; max-width: 620px;
+  background: var(--circuit-stage); border-radius: var(--radius); padding: 8px; line-height: 0;
+}
+.demo .circuit-stage img { width: 100%; height: auto; display: block; }
+.demo .circuit-hot {
+  position: absolute; margin: 0; padding: 0; min-height: 0;
+  background: transparent; border: 2px solid transparent; border-radius: 4px;
+  cursor: help;
+}
+.demo .circuit-hot:hover, .demo .circuit-hot.on, .demo .circuit-hot:focus-visible {
+  background: var(--accent-soft); border-color: var(--accent); outline: none;
+}
+.demo .circuit-tip {
+  margin: 0; min-height: 3.1em; max-width: 62ch; text-align: center;
+  font-family: var(--mono); font-size: var(--t-fine); line-height: 1.5; color: var(--ink-faint);
+}
+.demo .circuit-tip.live { color: var(--ink-soft); }
+.demo figure.circuit figcaption {
+  font-family: var(--mono); color: var(--ink-faint);
+  font-size: var(--t-fine); line-height: 1.55; text-align: center; max-width: 64ch;
+  border-top: 1px solid var(--rule); padding-top: 0.75rem;
+}
+.demo figure.circuit figcaption b { color: var(--ink-soft); font-weight: 500; }
+
+.demo .cite {
+  font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint);
+  line-height: 1.7; border-top: 1px solid var(--rule); padding-top: 1rem;
+}
+.demo .cite b { color: var(--ink-soft); font-weight: 500; }
+.demo .cite code {
+  font-family: var(--mono); background: var(--panel-2);
+  padding: 0.1em 0.35em; border-radius: 3px;
+}
+
+.demo .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); }
+.demo .tablewrap table { font-size: var(--t-label); }
+
+/* ---- the booth's own chrome, which the site frame replaces ---------------- */
+
+.demo .topbar, .demo .station-foot, .demo .station-nav, .demo .theme-toggle { display: none; }

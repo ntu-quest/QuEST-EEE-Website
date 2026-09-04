@@ -1,0 +1,74 @@
+---
+/* /about/people — grouped by what they build, not by rank. Faculty advisors
+   first, then the Top 4 as a small leadership row, then each department.
+
+   The one-line "what they're working on this year" is missing for everyone.
+   The card omits it rather than inventing one — see the handover checklist. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import PersonCard from '../../components/PersonCard.astro';
+import CTABand from '../../components/CTABand.astro';
+import { activePeople } from '../../lib/content';
+import { DEPARTMENTS } from '../../lib/site';
+
+const people = await activePeople();
+const group = (key: keyof typeof DEPARTMENTS) => people.filter((p) => p.data.department === key);
+
+const ORDER: (keyof typeof DEPARTMENTS)[] = [
+  'faculty', 'exco', 'academics', 'projects-research', 'publicity', 'business-outreach', 'operations',
+];
+const NOTE: Partial<Record<keyof typeof DEPARTMENTS, string>> = {
+  exco: 'The Top 4. Between them they carry the club’s direction, its minutes and its money.',
+  academics: 'The workshop series and the learning materials.',
+  'projects-research': 'Two leads, split hardware and software, because the work split that way in practice.',
+  publicity: 'Posters, socials, and everything anyone outside the club sees first.',
+  'business-outreach': 'Collaborations, sponsorship and the other universities.',
+  operations: 'Venues, equipment, and the run-of-show for every event.',
+};
+---
+<Base title="People" description="The QuEST@EEE committee and faculty advisors, grouped by what they build.">
+  <PageHeader
+    eyebrow="About"
+    title="People"
+    lede="Grouped by what they build rather than by rank. Every address below reaches a person, not a shared inbox — pick the one whose work your question is about."
+  />
+
+  {ORDER.map((key) => {
+    const members = group(key);
+    if (!members.length) return null;
+    return (
+      <section class="section-tight">
+        <div class="wrap">
+          <h2 class="dept">{DEPARTMENTS[key]}</h2>
+          {NOTE[key] && <p class="dept-note">{NOTE[key]}</p>}
+          <div class="people">
+            {members.map((person) => (
+              <PersonCard person={person}>
+                Interested? It is a real job and it is open — write to the President.
+              </PersonCard>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  })}
+
+  <section class="section-tight">
+    <div class="wrap">
+      <p class="caption">
+        Sub-committee members are not listed here and their addresses are never published. The
+        committee addresses above are published deliberately, and are assembled in your browser
+        rather than sitting in the page for a scraper to lift.
+      </p>
+    </div>
+  </section>
+
+  <CTABand title="There is a seat here with your name on it." href="/join/roles" action="See the roles" secondaryHref="/contact" secondary="Or just ask" />
+</Base>
+<style>
+  .dept { font-size: var(--t-sub); padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); margin-bottom: 0.75rem; }
+  .dept-note { color: var(--ink-soft); font-size: var(--t-small); max-width: var(--measure); margin-bottom: 1.75rem; }
+  .people { display: grid; gap: 2rem 1.5rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 900px) { .people { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 620px) { .people { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

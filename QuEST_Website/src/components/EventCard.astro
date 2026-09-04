@@ -1,0 +1,32 @@
+---
+/* EventCard — the detail page doubles as the QR landing page for a poster, so
+   the card links straight to it rather than opening anything in place. */
+import type { CollectionEntry } from 'astro:content';
+import Figure from './Figure.astro';
+import { media, DATE_SHORT, TIME } from '../lib/content';
+
+interface Props { event: CollectionEntry<'events'>; }
+const { event } = Astro.props;
+const e = event.data;
+const cover = e.photos.length ? await media(e.photos[0]) : null;
+const upcoming = e.status === 'upcoming' && e.start.getTime() > Date.now();
+---
+<a class="card-link" href={`/events/${event.id}`}>
+  <article class="card">
+    {cover && <div class="card-media"><Figure entry={cover} bare aspect="3 / 2" sizes="(max-width: 620px) 100vw, 380px" /></div>}
+    <p class="meta">
+      <span class="badge">{e.series.replace('-', ' ')}</span>
+      {upcoming && <span class="badge badge-open"><span class="badge-dot" aria-hidden="true"></span>Upcoming</span>}
+    </p>
+    <h3>{e.title}</h3>
+    <p class="when mono">
+      <time datetime={e.start.toISOString()}>{DATE_SHORT.format(e.start)}</time>
+      · {TIME.format(e.start)} · {e.venue}
+    </p>
+    <p class="card-foot"><span class="text-link">Details →</span></p>
+  </article>
+</a>
+<style>
+  .meta { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; text-transform: capitalize; }
+  .when { font-size: var(--t-fine); color: var(--ink-faint); }
+</style>

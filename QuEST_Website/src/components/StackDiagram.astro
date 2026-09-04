@@ -1,0 +1,154 @@
+---
+/* StackDiagram — three branches converging on applications.
+ *
+ * Static SVG at launch; interactive in Phase 2 (BLUEPRINT §06 warns this is the
+ * most expensive component on the site, so it ships static first).
+ *
+ * THE NESTED-LIST FALLBACK IS ALWAYS IN THE DOM and is never display:none. It
+ * is the accessible version of the diagram, it is what a screen reader reads,
+ * and it is what the page falls back to at narrow widths. The SVG is
+ * aria-hidden and decorative-by-delegation: everything it says, the list says.
+ */
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  nodes: CollectionEntry<'stack'>[];
+  /* 'full' carries the summaries — it is the only text version of the diagram
+     wherever the page has no node detail of its own. 'index' drops them to
+     titles, for a page that spells each node out underneath. The list is in
+     the DOM either way; only its depth changes. */
+  list?: 'full' | 'index';
+  /* The heading level the fallback list starts at. The diagram sits directly
+     under the <h1> on /explore/quantum-stack and under an <h2> on the
+     homepage, and a screen reader's outline must not skip a level either way. */
+  level?: 2 | 3;
+}
+const { nodes, list = 'full', level = 3 } = Astro.props;
+const Head = `h${level}` as 'h2' | 'h3';
+const SubHead = `h${level + 1}` as 'h3' | 'h4';
+
+const BRANCHES = [
+  { key: 'software', label: 'Software', hint: 'What you write' },
+  { key: 'physics', label: 'Physics', hint: 'What is actually happening' },
+  { key: 'hardware', label: 'Hardware', hint: 'What it runs on' },
+] as const;
+
+const by = (branch: string) => nodes.filter((n) => n.data.branch === branch);
+const applications = by('applications');
+
+/* Column geometry, computed once so the SVG and the labels cannot drift. */
+const W = 960;
+const COL = [160, 480, 800];
+const TOP = 70;
+const ROW = 76;
+const BOX_W = 250;
+const BOX_H = 52;
+const maxRows = Math.max(...BRANCHES.map((b) => by(b.key).length));
+const CONVERGE = TOP + maxRows * ROW + 40;
+const H = CONVERGE + 130;
+---
+
+<div class="stack">
+  <svg class="diagram" viewBox={`0 0 ${W} ${H}`} role="presentation" aria-hidden="true">
+    {BRANCHES.map((branch, column) => {
+      const items = by(branch.key);
+      const x = COL[column];
+      const lastY = TOP + (items.length - 1) * ROW + BOX_H / 2;
+      return (
+        <g>
+          <text x={x} y={38} class="branch-label" text-anchor="middle">{branch.label}</text>
+          <text x={x} y={56} class="branch-hint" text-anchor="middle">{branch.hint}</text>
+          {/* spine */}
+          <line x1={x} y1={62} x2={x} y2={lastY} class="spine" />
+          {/* the converging leg */}
+          <path d={`M ${x} ${lastY} L ${x} ${CONVERGE - 46} Q ${x} ${CONVERGE - 20} ${W / 2} ${CONVERGE - 12}`} class="leg" />
+          {items.map((node, row) => {
+            const y = TOP + row * ROW;
+            return (
+              <g>
+                <rect x={x - BOX_W / 2} y={y} width={BOX_W} height={BOX_H} rx="4" class="box" />
+                <text x={x} y={y + 32} class="node-label" text-anchor="middle">{node.data.title}</text>
+              </g>
+            );
+          })}
+        </g>
+      );
+    })}
+    <rect x={W / 2 - 190} y={CONVERGE} width="380" height={BOX_H + 8} rx="4" class="box box-apps" />
+    <text x={W / 2} y={CONVERGE + 37} class="branch-label" text-anchor="middle">Applications</text>
+    <text x={W / 2} y={CONVERGE + 86} class="branch-hint" text-anchor="middle">
+      {applications.map((a) => a.data.title).join(' · ')}
+    </text>
+  </svg>
+
+  <div class:list={['fallback', list === 'index' && 'as-index']}>
+    <Head class="visually-hidden">The Quantum Stack, as a list</Head>
+    <div class="branches">
+      {BRANCHES.map((branch) => (
+        <section>
+          <SubHead>{branch.label}<span class="hint">{branch.hint}</span></SubHead>
+          <ul>
+            {by(branch.key).map((node) => (
+              <li>
+                <a href={`/explore/quantum-stack#${node.id}`}>{node.data.title}</a>
+                {list === 'full' && <span class="sum">{node.data.summary}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      <section class="apps">
+        <SubHead>Applications<span class="hint">Where all three meet</span></SubHead>
+        <ul>
+          {applications.map((node) => (
+            <li>
+              <a href={`/explore/quantum-stack#${node.id}`}>{node.data.title}</a>
+              {list === 'full' && <span class="sum">{node.data.summary}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<style>
+  .stack { width: 100%; }
+  .diagram { width: 100%; height: auto; display: block; }
+  .box { fill: var(--panel); stroke: var(--rule); stroke-width: 1; }
+  .box-apps { fill: var(--accent-soft); stroke: var(--accent); }
+  .spine { stroke: var(--rule); stroke-width: 1; }
+  .leg { fill: none; stroke: var(--rule-bright); stroke-width: 1.5; }
+  .branch-label {
+    font-family: var(--display); font-weight: 800; font-size: 19px;
+    letter-spacing: -0.02em; fill: var(--ink);
+  }
+  .branch-hint { font-family: var(--mono); font-size: 12px; fill: var(--ink-faint); }
+  .node-label { font-family: var(--display); font-weight: 600; font-size: 15px; fill: var(--ink-soft); }
+
+  .fallback { margin-top: 2rem; }
+  /* As an index the list is a compact contents strip; the summaries live in
+     the node sections further down the page. */
+  .as-index li { padding: 0.4rem 0; }
+  .as-index :is(h3, h4) { margin-bottom: 0.4rem; }
+  .branches { display: grid; gap: var(--gap); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .apps { grid-column: 1 / -1; }
+  .branches :is(h3, h4) {
+    font-size: var(--t-body); margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  }
+  .hint { font-family: var(--mono); font-size: var(--t-fine); color: var(--ink-faint); font-weight: 400; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 0.6rem 0; border-bottom: 1px solid var(--rule); }
+  li a { font-family: var(--display); font-weight: 600; font-size: var(--t-small); text-decoration: none; }
+  .sum { display: block; font-size: var(--t-label); color: var(--ink-soft); line-height: 1.5; margin-top: 0.15rem; }
+
+  /* Below 820px the diagram is unreadable, so the list becomes the diagram.
+     The list is present and readable at every width — this only hides the
+     drawing, never the content. */
+  @media (max-width: 820px) {
+    .diagram { display: none; }
+    .branches { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

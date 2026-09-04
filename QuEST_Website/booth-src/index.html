@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QCC qfest &middot; quantum booth</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .hero {
+    display: flex; flex-direction: column; gap: 18px;
+    padding: 30px 0 34px; border-bottom: 1px solid var(--rule);
+  }
+  .hero h1 {
+    margin: 0; font-size: clamp(2.1rem, 5.4vw, 3.8rem); font-weight: 400;
+    letter-spacing: -0.03em; line-height: 1.06; max-width: 20ch;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+  .hero p { margin: 0; color: var(--ink-soft); font-size: clamp(1.02rem, 1.7vw, 1.18rem); max-width: 54ch; }
+  .hero p strong { color: var(--ink); font-weight: 500; }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  a.card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: var(--radius); padding: 22px; text-decoration: none;
+    color: var(--ink); min-height: 210px;
+  }
+  a.card {
+    background: var(--wash), var(--panel);
+    box-shadow: var(--elevation);
+    transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
+  }
+  a.card:hover {
+    background: var(--wash), var(--panel-2);
+    transform: translateY(-3px);
+  }
+  :root[data-theme="light"] a.card:hover {
+    background: var(--wash), var(--panel);
+    box-shadow: 0 2px 4px rgba(21,21,31,.06), 0 18px 40px -16px rgba(21,21,31,.22);
+  }
+  a.card:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 3px; }
+  a.card .kicker {
+    font-size: 0.72rem; letter-spacing: 0.14em; font-weight: 500;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  a.card h2 { margin: 0; font-size: 1.42rem; font-weight: 400; letter-spacing: -0.018em; color: var(--ink); }
+  a.card p { margin: 0; color: var(--ink-soft); font-size: 0.96rem; flex: 1; font-weight: 300; }
+  a.card .knobs {
+    font-size: 0.78rem; color: var(--ink-faint);
+    border-top: 1px solid var(--rule); padding-top: 11px; letter-spacing: .06em;
+    text-transform: uppercase; font-weight: 500;
+  }
+  a.card canvas { width: 100%; height: 54px; display: block; }
+</style>
+</head>
+<body>
+<main class="station">
+
+  <header class="hero">
+    <div class="topbar">
+      <a class="brand brand-hero" href="index.html">
+        <img class="logo-on-dark" src="quest-logo.png" alt="QuEST">
+        <img class="logo-on-light" src="quest-logo-light.png" alt="QuEST">
+      </a>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch between dark and light">Light</button>
+    </div>
+    <h1>How is quantum mechanics <em>changing the way we compute?</em></h1>
+    <p>Four stations. Each one has parameters you can turn.
+      <strong>Try them and see what the physics does.</strong></p>
+  </header>
+
+  <div class="grid">
+    <a class="card" href="grover.html">
+      <span class="kicker">Station 1 &middot; search</span>
+      <h2>Find the one marked box</h2>
+      <canvas data-demo="grover" data-height="54"></canvas>
+      <p>Search faster than any classical method can &mdash; then push it too far
+        and watch the answer evaporate.</p>
+      <span class="knobs">boxes &middot; marked &middot; steps</span>
+    </a>
+
+    <a class="card" href="bell.html">
+      <span class="kicker">Station 2 &middot; correlation</span>
+      <h2>Push the needle past 2</h2>
+      <canvas data-demo="bell" data-height="54"></canvas>
+      <p>Two detectors, far apart. Beat the limit that binds every universe
+        where the answers were fixed in advance.</p>
+      <span class="knobs">angle &middot; pairs &middot; entanglement</span>
+    </a>
+
+    <a class="card" href="stern-gerlach.html">
+      <span class="kicker">Station 3 &middot; measurement</span>
+      <h2>The atoms you threw away come back</h2>
+      <canvas data-demo="sg" data-height="54"></canvas>
+      <p>Block half a beam of silver atoms. Add one more magnet, and the half you
+        removed is back. 1922 apparatus.</p>
+      <span class="knobs">magnets &middot; blocking &middot; phase</span>
+    </a>
+
+    <a class="card" href="vqe-h2.html">
+      <span class="kicker">Station 4 &middot; chemistry</span>
+      <h2>Solve a molecule with one knob</h2>
+      <canvas data-demo="vqe" data-height="54"></canvas>
+      <p>Turn until the energy stops falling. That is the ground state of
+        hydrogen, and classical chemistry cannot reach it.</p>
+      <span class="knobs">&theta; &middot; bond length</span>
+    </a>
+  </div>
+
+  <footer class="station-foot">
+    <span>Built for the QCC qfest booth &middot; runs offline, no install</span>
+    <span>Sources on every station under &ldquo;Show the maths&rdquo;</span>
+  </footer>
+</main>
+
+<script src="data/constants.js"></script>
+<script src="physics.js"></script>
+<script src="mathfmt.js"></script>
+<script src="shared.js"></script>
+<script>
+/* Each card carries a small live sparkline of its own station, so the launcher
+   itself is never a wall of dead text on a booth screen. */
+(function () {
+  "use strict";
+  Booth.requireConstants();
+  Booth.initTheme();
+
+  var C = Booth.palette({ marked: "--marked", amp: "--amp", faint: "--ink-faint" });
+  var start = performance.now();
+
+  var sparklines = [];
+  Array.prototype.forEach.call(document.querySelectorAll("canvas[data-demo]"), function (element) {
+    var kind = element.getAttribute("data-demo");
+    sparklines.push({ kind: kind, view: Booth.canvas(element, function (view) {
+      draw(kind, view, (performance.now() - start) / 1000);
+    }) });
+  });
+
+  function draw(kind, view, seconds) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineWidth = 2;
+
+    if (kind === "grover") {
+      // amplitude bars, one of them growing
+      var n = 16, phase = (seconds % 6) / 6;
+      var steps = Math.floor(phase * 5);
+      var psi = Physics.grover.amplitudes(4, [9], steps);
+      var slot = w / n;
+      for (var i = 0; i < n; i++) {
+        var value = Math.abs(psi[i]) * h * 1.5;
+        ctx.fillStyle = i === 9 ? C.marked : C.amp;
+        ctx.fillRect(i * slot + 1, h - value, slot - 3, value);
+      }
+    } else if (kind === "bell") {
+      // S against detuning, with the classical bound drawn in
+      ctx.strokeStyle = C.faint;
+      ctx.setLineDash([3, 3]);
+      var yTwo = h - (2 / 3.2) * h;
+      ctx.beginPath(); ctx.moveTo(0, yTwo); ctx.lineTo(w, yTwo); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = C.marked;
+      ctx.beginPath();
+      for (var px = 0; px <= w; px++) {
+        var d = (px / w) * Math.PI / 2;
+        var s = Math.abs(Physics.chsh.SDetuned(d));
+        var y = h - (s / 3.2) * h;
+        if (px === 0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+      }
+      ctx.stroke();
+    } else if (kind === "sg") {
+      // a beam splitting in two
+      ctx.strokeStyle = C.amp;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2); ctx.lineTo(w * 0.42, h / 2);
+      ctx.stroke();
+      ctx.strokeStyle = C.marked;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.42, h / 2); ctx.lineTo(w, h * 0.16);
+      ctx.moveTo(w * 0.42, h / 2); ctx.lineTo(w, h * 0.84);
+      ctx.stroke();
+      var travel = (seconds % 3) / 3;
+      ctx.fillStyle = C.marked;
+      ctx.beginPath();
+      ctx.arc(w * (0.42 + 0.58 * travel), h / 2 + (h * 0.34) * travel * (travel > 0.5 ? -1 : -1), 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (kind === "vqe") {
+      // the energy well, with a marble rolling into it
+      var row = window.QCC.h2.rows[36];
+      ctx.strokeStyle = C.amp;
+      ctx.beginPath();
+      var low = row.offset - Math.hypot(row.cosAmp, row.sinAmp);
+      var high = row.offset + Math.hypot(row.cosAmp, row.sinAmp);
+      for (var qx = 0; qx <= w; qx++) {
+        var t = (-90 + (qx / w) * 180) * Math.PI / 180;
+        var e = Physics.h2.energy(row, t);
+        var ey = 4 + (h - 12) * (e - low) / (high - low);
+        if (qx === 0) ctx.moveTo(qx, ey); else ctx.lineTo(qx, ey);
+      }
+      ctx.stroke();
+      var best = Physics.h2.optimalTheta(row) * 180 / Math.PI;
+      var swing = best + Math.sin(seconds * 1.4) * 30;
+      var bx = ((swing + 90) / 180) * w;
+      var be = Physics.h2.energy(row, swing * Math.PI / 180);
+      ctx.fillStyle = C.marked;
+      ctx.beginPath();
+      ctx.arc(bx, 4 + (h - 12) * (be - low) / (high - low), 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function tick() {
+    sparklines.forEach(function (item) { item.view.repaint(); });
+    window.requestAnimationFrame(tick);
+  }
+  window.requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

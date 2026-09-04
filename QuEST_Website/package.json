@@ -1,0 +1,27 @@
+{
+  "name": "quest-eee-website",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/images.mjs && node scripts/booth.mjs && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "prepare:content": "node scripts/images.mjs && node scripts/booth.mjs",
+    "booth": "node scripts/booth.mjs",
+    "images": "node scripts/images.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.2.6",
+    "@astrojs/sitemap": "^3.3.1",
+    "astro": "^5.7.13",
+    "sharp": "^0.34.1",
+    "@tailwindcss/vite": "^4.1.7",
+    "tailwindcss": "^4.1.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.8.3"
+  }
+}

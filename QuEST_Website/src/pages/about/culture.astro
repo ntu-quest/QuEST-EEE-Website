@@ -1,0 +1,79 @@
+---
+/* /about/culture — the manifesto. It lives here and NOT on the homepage: a
+   visitor should meet the work first and the philosophy second. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import StatementBlock from '../../components/StatementBlock.astro';
+import Figure from '../../components/Figure.astro';
+import CTABand from '../../components/CTABand.astro';
+import { media } from '../../lib/content';
+
+const notes = await media('entanglement-notes');
+
+const BELIEFS = [
+  {
+    title: 'Not knowing is the starting condition, not a disqualification',
+    body: 'Every session assumes you have not seen it before. The people teaching were in the audience two semesters ago, which is the strongest argument we have that this is learnable.',
+  },
+  {
+    title: 'Understanding beats covering ground',
+    body: 'It is easy to run a workshop that touches twelve topics and lands none. We would rather spend ninety minutes on linear independence and have it stick.',
+  },
+  {
+    title: 'Explaining is how you find out you were wrong',
+    body: 'Members teach. Not because there is nobody else to do it, but because standing in front of a room is the fastest way to discover which parts you only thought you understood.',
+  },
+  {
+    title: 'A result you cannot communicate is not finished',
+    body: 'Every project ends in something somebody else can read — a notebook, a write-up, a talk. The write-up is not the admin at the end of the work; it is the last part of the work.',
+  },
+  {
+    title: 'Say what is uncertain',
+    body: 'Quantum computing has a marketing problem, and student clubs are one of the places it spreads. Where the honest answer is "nobody knows yet whether this beats a classical method", that is the answer we give.',
+  },
+];
+---
+<Base title="Our culture" description="What QuEST@EEE believes about learning, teaching and finishing things.">
+  <PageHeader
+    eyebrow="About"
+    title="What we believe"
+    lede="A club's culture is whatever it actually rewards. These are the five things we try to reward."
+  />
+
+  <StatementBlock cite="The line the whole club is built on">
+    You don't have to know what you want to become. You just have to be willing to explore.
+  </StatementBlock>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <ol class="beliefs">
+        {BELIEFS.map((belief, index) => (
+          <li>
+            <span class="n mono">{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <h2>{belief.title}</h2>
+              <p>{belief.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  {notes && (
+    <section class="section">
+      <div class="wrap"><Figure entry={notes} caption sizes="(max-width: 900px) 100vw, 900px" /></div>
+    </section>
+  )}
+
+  <CTABand title="Explore. Build. Question. Become." href="/join" action="Join QuEST" secondaryHref="/about/people" secondary="Meet the people" />
+</Base>
+<style>
+  .beliefs { list-style: none; margin: 0; padding: 0; }
+  .beliefs li { display: grid; grid-template-columns: 3.5rem 1fr; gap: 1rem; padding-block: 2rem; border-top: 1px solid var(--rule); }
+  .beliefs li:first-child { border-top: 0; padding-top: 0; }
+  .n { font-size: var(--t-lead); color: var(--ink-faint); }
+  .beliefs h2 { font-size: var(--t-sub); max-width: 24ch; }
+  .beliefs p { color: var(--ink-soft); max-width: var(--measure); margin: 0; }
+  @media (max-width: 620px) { .beliefs li { grid-template-columns: minmax(0, 1fr); gap: 0.35rem; } }
+</style>

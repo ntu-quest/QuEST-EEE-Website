@@ -1,0 +1,40 @@
+---
+/* FilterBar — real URL links (?area=software), shareable, and they work with
+   JavaScript disabled because they are links and not a script. */
+interface Props {
+  base: string;
+  param: string;
+  current?: string;
+  options: { value: string; label: string; count: number }[];
+  allLabel?: string;
+  total: number;
+}
+const { base, param, current, options, allLabel = 'Everything', total } = Astro.props;
+---
+<nav class="filters" aria-label="Filter">
+  <a href={base} class:list={['chip', !current && 'on']} aria-current={!current ? 'true' : undefined}>
+    {allLabel} <span class="n">{total}</span>
+  </a>
+  {options.filter((o) => o.count > 0).map((o) => (
+    <a href={`${base}?${param}=${o.value}`}
+       class:list={['chip', current === o.value && 'on']}
+       aria-current={current === o.value ? 'true' : undefined}>
+      {o.label} <span class="n">{o.count}</span>
+    </a>
+  ))}
+</nav>
+<style>
+  .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    font-family: var(--display); font-weight: 600; font-size: var(--t-label);
+    padding: 0.45rem 0.8rem; min-height: 40px;
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    background: var(--wash); color: var(--ink-soft); text-decoration: none;
+    text-transform: capitalize;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .n { font-family: var(--mono); font-size: var(--t-fine); font-variant-numeric: tabular-nums; color: var(--ink-faint); }
+  .chip.on .n { color: var(--accent); }
+</style>

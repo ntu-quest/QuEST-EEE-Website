@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.DS_Store
+
+# The ORIGINAL photographs are not committed — several are 5–10 MB, and
+# CLAUDE.md forbids committing an image over 500 KB. They live in the club's
+# shared drive; see CONTENT.md for how to add one.
+media-src/
+
+# Generated from booth-src/ by scripts/booth.mjs on every build.
+public/demos/
+public/demo-wire/
+public/quest-demos-offline.zip
+src/generated/
+
+# NOT ignored, and deliberately so:
+#   public/images/  — the optimised AVIF/WebP output, every file under 180 KB
+#   public/video/   — the six physics animations, converted from GIF
+# Committing both means a CI build needs neither the heavy originals nor ffmpeg.

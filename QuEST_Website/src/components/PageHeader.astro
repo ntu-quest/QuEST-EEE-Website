@@ -1,0 +1,18 @@
+---
+/* Every page names its job in a sentence before it is built. If it cannot,
+   it does not ship (Apple's Purpose principle, BLUEPRINT §02). */
+interface Props { eyebrow?: string; title: string; lede?: string; }
+const { eyebrow, title, lede } = Astro.props;
+---
+<header class="section-tight page-header">
+  <div class="wrap">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1>{title}</h1>
+    {lede && <p class="lede">{lede}</p>}
+    <slot />
+  </div>
+</header>
+<style>
+  .page-header { padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 3vw, 2.5rem); }
+  .page-header h1 { max-width: 18ch; }
+</style>

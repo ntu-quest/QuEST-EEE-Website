@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grover search &middot; QCC qfest booth</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<main class="station">
+
+  <div class="topbar">
+      <a class="brand" href="index.html">
+        <img class="logo-on-dark" src="quest-logo.png" alt="QuEST">
+        <img class="logo-on-light" src="quest-logo-light.png" alt="QuEST">
+      </a>
+      <nav class="station-nav" aria-label="Stations">
+        <a href="index.html">All stations</a>
+        <a href="grover.html" aria-current="page">Search</a>
+        <a href="bell.html">Correlation</a>
+        <a href="stern-gerlach.html">Measurement</a>
+        <a href="vqe-h2.html">Chemistry</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch between dark and light">Light</button>
+  </div>
+
+  <header class="station-head">
+    <div>
+      <p class="eyebrow">Station &middot; search</p>
+      <h1>Find the one marked box</h1>
+      <p class="hook">A classical search opens boxes one at a time. This one nudges
+        every box at once. Turn the dial to search faster &mdash; then keep
+        turning, and watch the answer fall apart.</p>
+    </div>
+    <div class="button-row">
+      <button id="step">Run one step</button>
+      <button id="reset" class="primary">Reset</button>
+    </div>
+  </header>
+
+  <div class="readout">
+    <span class="value good" id="probability">6%</span>
+    <span class="caption" id="caption">
+      Chance of finding the marked box if you measured right now.
+    </span>
+    <span class="pill" id="optimal-pill">best at 3 steps</span>
+    <span class="attract-note" id="attract-note" hidden>demo running &mdash; touch to take over</span>
+  </div>
+
+  <div class="panels wide-left">
+
+    <section class="panel">
+      <h2>Amplitude of each box &mdash; tap a bar to mark it</h2>
+      <canvas id="bars" data-height="300" role="img"
+              aria-label="Bar chart of the amplitude of every box in the search space"></canvas>
+      <p class="knob-hint" id="bars-hint" style="color:var(--ink-faint);font-size:.85rem;margin:0">
+        Height is the amplitude. Probability is height squared, so the tall amber
+        bar is the one you are overwhelmingly likely to measure.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>The same state, drawn as a rotation</h2>
+      <canvas id="geometry" data-height="300" role="img"
+              aria-label="The state as a vector rotating towards the solution axis"></canvas>
+      <p class="knob-hint" style="color:var(--ink-faint);font-size:.85rem;margin:0">
+        Every step turns the arrow by the same angle. That is why overshooting
+        is possible &mdash; and why it is inevitable if you keep going.
+      </p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Success probability against number of steps</h2>
+    <canvas id="curve" data-height="180" role="img"
+            aria-label="Success probability plotted against the number of Grover steps"></canvas>
+  </section>
+
+  <div class="controls">
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="qubits">Boxes to search</label></span>
+        <span class="knob-value" id="qubits-value">16</span>
+      </div>
+      <input type="range" id="qubits" min="2" max="6" step="1" value="4">
+      <span class="knob-hint">2 to 6 qubits &mdash; 4 boxes up to 64</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="steps">Search steps</label></span>
+        <span class="knob-value" id="steps-value">0</span>
+      </div>
+      <input type="range" id="steps" min="0" max="12" step="1" value="0">
+      <span class="knob-hint">This is the dial. Push it past the best value.</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name">Marked boxes</span>
+        <span class="knob-value" id="marked-count">1</span>
+      </div>
+      <div class="button-row">
+        <button id="mark-random">Mark a different box</button>
+        <button id="mark-add">Add one</button>
+      </div>
+      <span class="knob-hint" id="marked-hint">Or tap any bar in the chart</span>
+    </div>
+  </div>
+
+
+  <details class="maths">
+    <summary>Show the maths</summary>
+    <div class="maths-body">
+      <p><strong>Setting up the two-dimensional picture.</strong> With <span class="eq" data-tex="N"></span> boxes of which <span class="eq" data-tex="M"></span> are marked, split the computational basis into the unmarked states and the marked ones:</p>
+      <div class="eq" data-tex="\ket{\alpha} = \frac{1}{\sqrt{N-M}} \sum_{x \text{ unmarked}} \ket{x} \qquad \ket{\beta} = \frac{1}{\sqrt{M}} \sum_{x \text{ marked}} \ket{x}" data-display></div>
+      <p>These are orthonormal, and the uniform superposition the Hadamards produce lies in the plane they span:</p>
+      <div class="eq" data-tex="\ket{s} = \frac{1}{\sqrt{N}}\sum_{x=0}^{N-1}\ket{x} = \sqrt{\frac{N-M}{N}}\,\ket{\alpha} + \sqrt{\frac{M}{N}}\,\ket{\beta}" data-display></div>
+      <p>Define <span class="eq" data-tex="\theta"></span> by that second coefficient. Then the starting state sits at angle <span class="eq" data-tex="\theta"></span> from the &ldquo;all wrong answers&rdquo; axis:</p>
+      <div class="eq" data-tex="\sin\theta = \sqrt{\frac{M}{N}} \qquad\Rightarrow\qquad \ket{s} = \cos\theta\,\ket{\alpha} + \sin\theta\,\ket{\beta}" data-display></div>
+      <p><strong>Each step is two reflections.</strong> The oracle flips the sign of marked states, which is a reflection about <span class="eq" data-tex="\ket{\alpha}"></span>; the diffuser reflects about <span class="eq" data-tex="\ket{s}"></span>:</p>
+      <div class="eq" data-tex="O = I - 2\ketbra{\beta}{\beta} \qquad D = 2\ketbra{s}{s} - I" data-display></div>
+      <p>Composing two reflections whose axes differ by <span class="eq" data-tex="\theta"></span> gives a rotation by <span class="eq" data-tex="2\theta"></span>. Applying <span class="eq" data-tex="G = DO"></span> to a state at angle <span class="eq" data-tex="\gamma"></span> from <span class="eq" data-tex="\ket{\alpha}"></span>:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} G\big(\cos\gamma\,\ket{\alpha} + \sin\gamma\,\ket{\beta}\big) &amp;= \cos(\gamma + 2\theta)\,\ket{\alpha} + \sin(\gamma+2\theta)\,\ket{\beta} \\ G^r \ket{s} &amp;= \cos\big((2r+1)\theta\big)\ket{\alpha} + \sin\big((2r+1)\theta\big)\ket{\beta} \end{aligned}" data-display></div>
+      </div>
+      <p>Measuring gives a marked item with probability equal to the squared <span class="eq" data-tex="\ket{\beta}"></span> component:</p>
+      <div class="eq" data-tex="P(r) = \sin^2\big((2r+1)\theta\big)" data-display></div>
+      <p><strong>When to stop.</strong> The probability is largest when the state points along <span class="eq" data-tex="\ket{\beta}"></span>, that is when <span class="eq" data-tex="(2r+1)\theta \approx \pi/2"></span>:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} r_{\text{opt}} &amp;= \operatorname{round}\!\left(\frac{\pi/2 - \theta}{2\theta}\right) \\ &amp;\approx \frac{\pi}{4}\sqrt{\frac{N}{M}} \qquad \text{for } M \ll N \end{aligned}" data-display></div>
+      </div>
+      <p>That square root is the whole speed-up: classically you expect to open about <span class="eq" data-tex="N/2"></span> boxes.</p>
+      <p><strong>Why overshooting happens.</strong> Because <span class="eq" data-tex="G"></span> is a <em>rotation</em> by a fixed angle, nothing stops it at the target. One step past the optimum and the state has turned past <span class="eq" data-tex="\ket{\beta}"></span> and is heading back down &mdash; the success probability is periodic in <span class="eq" data-tex="r"></span>, not monotone. That is exactly what the dial shows.</p>
+      <figure class="circuit" data-circuit="grover">
+        <div class="circuit-stage"><img src="circuits/grover.svg" alt="Grover circuit: a Hadamard on every qubit, then the oracle, then the diffuser, then measurement"></div>
+        <p class="circuit-tip">Hover or tap any gate to see what it does.</p>
+        <figcaption>One Grover iteration on four qubits, marking box 9. <b>FlipSign</b> is the oracle; <b>GroverOperator</b> is the inversion about the mean. Repeat the pair r times.</figcaption>
+      </figure>
+      <p><strong>Inversion about the mean.</strong> The diffuser <span class="eq" data-tex="D = 2\ketbra{s}{s} - I"></span> acts on amplitudes as <span class="eq" data-tex="a_x \mapsto 2\bar{a} - a_x"></span>, where <span class="eq" data-tex="\bar{a}"></span> is their mean. The oracle has just made one amplitude negative, barely moving the mean, so reflecting about it throws that one amplitude far above the rest. Watch the green line in the bar chart: that is <span class="eq" data-tex="\bar{a}"></span>.</p>
+      <p id="degenerate-warning" class="warn-line"></p>
+      <div class="cite">
+        <b>Grover</b>, Proc. 28th ACM STOC (1996) 212, arXiv:quant-ph/9605043 &middot;
+        <b>Boyer, Brassard, H&oslash;yer, Tapp</b>, Fortschr. Phys. 46 (1998) 493,
+        arXiv:quant-ph/9605034 &mdash; the closed form above &middot;
+        <b>Nielsen &amp; Chuang</b>, &sect;6.1.3 &mdash; the rotation picture.
+        Every number on this page is asserted in <code>verify/test_reference.py</code>.
+      </div>
+    </div>
+  </details>
+
+  <footer class="station-foot">
+    <span>QCC qfest &middot; station 1 of 4</span>
+    <span><a href="index.html">All stations</a></span>
+  </footer>
+</main>
+
+<script src="data/constants.js"></script>
+<script src="physics.js"></script>
+<script src="mathfmt.js"></script>
+<script src="circuits/hotspots.js"></script>
+<script src="shared.js"></script>
+<script>
+(function () {
+  "use strict";
+  Booth.requireConstants();
+  Booth.initTheme();
+  if (!window.Physics) throw new Error("booth/physics.js did not load");
+
+  var C = Booth.palette({
+    ink:      "--ink",
+    inkSoft:  "--ink-soft",
+    inkFaint: "--ink-faint",
+    rule:     "--rule",
+    ruleBright: "--rule-bright",
+    marked:   "--marked",
+    amp:      "--amp",
+    negative: "--negative",
+    good:     "--good",
+    panel2:   "--panel-2"
+  });
+
+  // ---------------------------------------------------------------- state
+  var state = {
+    n: 4,
+    marked: new Set([9]),
+    steps: 0,
+    // animation: null, or {current, baseSteps, angle, label, showMean}
+    anim: null
+  };
+
+  function N() { return 1 << state.n; }
+
+  /* All the maths lives in physics.js, which verify/test_booth_physics.py runs
+     in a bare JS engine and compares against verify/reference.py.  Nothing here
+     recomputes physics -- this file only draws it. */
+  var G = Physics.grover;
+
+  function markedList() { return Array.from(state.marked); }
+  function applyOracle(psi) { return G.oracle(psi, markedList()); }
+  function applyDiffuser(psi) { return G.diffuser(psi); }
+  function meanOf(psi) { return G.mean(psi); }
+  function amplitudesAt(iterations) { return G.amplitudes(state.n, markedList(), iterations); }
+  function successProbability(iterations) {
+    return G.successFromAmplitudes(amplitudesAt(iterations), markedList());
+  }
+  function theta() { return G.theta(state.n, state.marked.size); }
+  function optimalSteps() { return G.optimalIterations(state.n, state.marked.size); }
+  function isDegenerate() { return G.isDegenerate(state.n, state.marked.size); }
+
+  // ------------------------------------------------------------ bar chart
+  var barsCanvas = document.getElementById("bars");
+  var barHitBoxes = [];
+
+  var bars = Booth.canvas(barsCanvas, function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var psi = state.anim ? state.anim.current : amplitudesAt(state.steps);
+    var size = psi.length;
+    var padL = 12, padR = 12, padT = 26, padB = 26;
+    var plotW = w - padL - padR;
+    var plotH = h - padT - padB;
+    var zeroY = padT + plotH * 0.62;          // room for negative bars below
+    var scale = plotH * 0.58;                  // amplitude 1.0 -> this many px
+
+    var slot = plotW / size;
+    var barW = Math.max(2, slot * 0.72);
+
+    // zero axis
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, Booth.crisp(zeroY));
+    ctx.lineTo(w - padR, Booth.crisp(zeroY));
+    ctx.stroke();
+
+    // mean line -- the whole point of the diffuser step
+    if (state.anim && state.anim.showMean) {
+      var meanY = zeroY - meanOf(psi) * scale;
+      ctx.save();
+      ctx.strokeStyle = C.good;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 5]);
+      ctx.beginPath();
+      ctx.moveTo(padL, meanY);
+      ctx.lineTo(w - padR, meanY);
+      ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = C.good;
+      ctx.font = "600 13px " + Booth.css("--sans");
+      ctx.textAlign = "right";
+      ctx.fillText("average", w - padR, meanY - 7);
+    }
+
+    barHitBoxes = [];
+    for (var i = 0; i < size; i++) {
+      var x = padL + slot * i + (slot - barW) / 2;
+      var value = psi[i];
+      var barH = value * scale;
+      var isMarked = state.marked.has(i);
+      ctx.fillStyle = isMarked ? C.marked : (value < 0 ? C.negative : C.amp);
+      if (barH >= 0) ctx.fillRect(x, zeroY - barH, barW, Math.max(1, barH));
+      else ctx.fillRect(x, zeroY, barW, Math.max(1, -barH));
+
+      // marked bars get a notch above the axis as well as a colour, so the
+      // chart still reads for a colour-blind visitor
+      if (isMarked) {
+        ctx.fillStyle = C.marked;
+        ctx.beginPath();
+        ctx.moveTo(x + barW / 2, padT - 16);
+        ctx.lineTo(x + barW / 2 - 6, padT - 6);
+        ctx.lineTo(x + barW / 2 + 6, padT - 6);
+        ctx.closePath();
+        ctx.fill();
+      }
+      barHitBoxes.push({ x: padL + slot * i, w: slot, index: i });
+    }
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "12px " + Booth.css("--sans");
+    ctx.textAlign = "left";
+    ctx.fillText("box 0", padL, h - 8);
+    ctx.textAlign = "right";
+    ctx.fillText("box " + (size - 1), w - padR, h - 8);
+    ctx.textAlign = "center";
+    ctx.fillText(state.anim ? state.anim.label : "after " + state.steps + " step" +
+                 (state.steps === 1 ? "" : "s"), w / 2, h - 8);
+  });
+
+  function barIndexFromEvent(event) {
+    var rect = barsCanvas.getBoundingClientRect();
+    var x = event.clientX - rect.left;
+    for (var i = 0; i < barHitBoxes.length; i++) {
+      var box = barHitBoxes[i];
+      if (x >= box.x && x < box.x + box.w) return box.index;
+    }
+    return -1;
+  }
+
+  barsCanvas.addEventListener("pointerdown", function (event) {
+    var index = barIndexFromEvent(event);
+    if (index < 0) return;
+    if (state.marked.has(index)) {
+      if (state.marked.size > 1) state.marked.delete(index);
+    } else {
+      state.marked.add(index);
+    }
+    refresh();
+  });
+
+  // ------------------------------------------------------------- geometry
+  var geometry = Booth.canvas(document.getElementById("geometry"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var cx = w * 0.5, cy = h * 0.86;
+    var radius = Math.min(w * 0.40, h * 0.74);
+    var th = theta();
+    var angle = (2 * (state.anim ? state.anim.baseSteps : state.steps) + 1) * th;
+    if (state.anim) angle = state.anim.angle;
+
+    // axes
+    ctx.strokeStyle = C.rule;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - radius - 14, Booth.crisp(cy));
+    ctx.lineTo(cx + radius + 14, Booth.crisp(cy));
+    ctx.moveTo(Booth.crisp(cx), cy + 10);
+    ctx.lineTo(Booth.crisp(cx), cy - radius - 16);
+    ctx.stroke();
+
+    // quarter arc the state travels along
+    ctx.strokeStyle = C.ruleBright;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, -Math.PI / 2, 0);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ghosts of every earlier step, so the equal-angle march is visible
+    var upto = state.anim ? state.anim.baseSteps : state.steps;
+    for (var r = 0; r <= upto; r++) {
+      var a = (2 * r + 1) * th;
+      ctx.strokeStyle = C.ruleBright;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + radius * Math.cos(a), cy - radius * Math.sin(a));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // the live state vector
+    ctx.strokeStyle = C.marked;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    var tipX = cx + radius * Math.cos(angle), tipY = cy - radius * Math.sin(angle);
+    ctx.lineTo(tipX, tipY);
+    ctx.stroke();
+    ctx.fillStyle = C.marked;
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // projection onto the solution axis == amplitude of a right answer
+    ctx.strokeStyle = C.good;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(cx, tipY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "13px " + Booth.css("--sans");
+    ctx.textAlign = "left";
+    ctx.fillText("wrong answers", cx + radius * 0.30, cy + 20);
+    ctx.save();
+    ctx.translate(cx - 12, cy - radius - 4);
+    ctx.textAlign = "right";
+    ctx.fillStyle = C.good;
+    ctx.fillText("right answer", 0, 0);
+    ctx.restore();
+
+    ctx.fillStyle = C.marked;
+    ctx.font = "600 13px " + Booth.css("--sans");
+    ctx.textAlign = "left";
+    ctx.fillText((angle * 180 / Math.PI).toFixed(0) + "°", cx + 14, cy - 14);
+  });
+
+  // ---------------------------------------------------------------- curve
+  var curve = Booth.canvas(document.getElementById("curve"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var padL = 46, padR = 16, padT = 14, padB = 30;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var maxR = 12, th = theta();
+
+    // gridlines at 0, 50, 100 %
+    ctx.strokeStyle = C.rule;
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "right";
+    [0, 0.5, 1].forEach(function (p) {
+      var y = padT + plotH * (1 - p);
+      ctx.beginPath();
+      ctx.moveTo(padL, Booth.crisp(y));
+      ctx.lineTo(w - padR, Booth.crisp(y));
+      ctx.stroke();
+      ctx.fillText(Math.round(p * 100) + "%", padL - 8, y + 4);
+    });
+
+    // continuous curve -- the honest shape, a sinusoid in r
+    ctx.strokeStyle = C.amp;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var px = 0; px <= plotW; px++) {
+      var r = (px / plotW) * maxR;
+      var p = Math.pow(Math.sin((2 * r + 1) * th), 2);
+      var x = padL + px, y = padT + plotH * (1 - p);
+      if (px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // the integer step counts a visitor can actually select
+    for (var r2 = 0; r2 <= maxR; r2++) {
+      var p2 = Math.pow(Math.sin((2 * r2 + 1) * th), 2);
+      var x2 = padL + (r2 / maxR) * plotW;
+      var y2 = padT + plotH * (1 - p2);
+      var isNow = r2 === state.steps;
+      ctx.fillStyle = isNow ? C.marked : C.inkFaint;
+      ctx.beginPath();
+      ctx.arc(x2, y2, isNow ? 7 : 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      if (isNow) {
+        ctx.strokeStyle = C.marked;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2, padT + plotH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    for (var r3 = 0; r3 <= maxR; r3 += 2) {
+      ctx.fillText(String(r3), padL + (r3 / maxR) * plotW, h - 10);
+    }
+    ctx.textAlign = "left";
+    ctx.fillText("search steps →", padL, h - 10 - 0);
+  });
+
+  // ------------------------------------------------------------- refresh
+  var qubitsKnob, stepsKnob;
+
+  function refresh() {
+    var probability = successProbability(state.steps);
+    var element = document.getElementById("probability");
+    element.textContent = Math.round(probability * 100) + "%";
+    element.className = "value " + (probability > 0.8 ? "good"
+                        : probability > 0.35 ? "warn" : "bad");
+
+    var best = optimalSteps();
+    var pill = document.getElementById("optimal-pill");
+    if (isDegenerate()) {
+      pill.textContent = "too many marked — it stops working";
+      pill.className = "pill bad";
+    } else if (state.steps === best) {
+      pill.textContent = "this is the best it gets";
+      pill.className = "pill good";
+    } else if (state.steps > best) {
+      pill.textContent = "overshot — best was " + best + " step" + (best === 1 ? "" : "s");
+      pill.className = "pill bad";
+    } else {
+      pill.textContent = "best at " + best + " step" + (best === 1 ? "" : "s");
+      pill.className = "pill";
+    }
+
+    var caption = document.getElementById("caption");
+    if (isDegenerate()) {
+      caption.textContent = "With half the boxes marked the trick breaks down: "
+        + "every step leaves you at a coin flip, no matter how many you take.";
+    } else if (state.steps > best) {
+      caption.textContent = "More steps made it worse. The rotation went straight "
+        + "past the answer and kept going.";
+    } else {
+      caption.textContent = "Chance of finding a marked box if you measured right now.";
+    }
+
+    document.getElementById("marked-count").textContent = state.marked.size;
+    document.getElementById("qubits-value").textContent = N();
+
+    var warning = document.getElementById("degenerate-warning");
+    warning.textContent = isDegenerate()
+      ? "Right now M/N ≥ 1/2, so θ ≥ 45° and sin²((2r+1)θ) "
+        + "never climbs above 1/2. Grover needs the marked set to be rare."
+      : "";
+
+    bars.repaint();
+    geometry.repaint();
+    curve.repaint();
+  }
+
+  // ---------------------------------------------------------------- knobs
+  qubitsKnob = Booth.knob("qubits", function (value) {
+    state.n = value;
+    var size = N();
+    var kept = new Set();
+    state.marked.forEach(function (m) { if (m < size) kept.add(m); });
+    if (kept.size === 0) kept.add(Math.floor(Math.random() * size));
+    state.marked = kept;
+    refresh();
+  }, function (value) { return String(1 << value); });
+
+  stepsKnob = Booth.knob("steps", function (value) {
+    state.steps = value;
+    state.anim = null;
+    refresh();
+  });
+
+  document.getElementById("mark-random").addEventListener("click", function () {
+    var size = N();
+    var next = new Set();
+    while (next.size < state.marked.size && next.size < size - 1) {
+      next.add(Math.floor(Math.random() * size));
+    }
+    state.marked = next;
+    refresh();
+  });
+
+  document.getElementById("mark-add").addEventListener("click", function () {
+    var size = N();
+    if (state.marked.size >= size - 1) return;
+    var candidate;
+    do { candidate = Math.floor(Math.random() * size); } while (state.marked.has(candidate));
+    state.marked.add(candidate);
+    refresh();
+  });
+
+  /* One step, animated in its two real halves: the oracle flipping the phase,
+     then the reflection about the average.  Watching those separately is the
+     moment the algorithm stops being magic. */
+  document.getElementById("step").addEventListener("click", function () {
+    if (state.anim) return;
+    var start = amplitudesAt(state.steps);
+    var flipped = applyOracle(start);
+    var done = applyDiffuser(flipped);
+    var th = theta();
+    var angleFrom = (2 * state.steps + 1) * th;
+    var angleTo = (2 * state.steps + 3) * th;
+
+    state.anim = {
+      current: start, baseSteps: state.steps, angle: angleFrom,
+      label: "flipping the marked box…", showMean: false
+    };
+
+    Booth.animate(0, 1, 520, function (t) {
+      var next = new Array(start.length);
+      for (var i = 0; i < start.length; i++) next[i] = Booth.lerp(start[i], flipped[i], t);
+      state.anim.current = next;
+      bars.repaint();
+    }, function () {
+      state.anim.label = "reflecting about the average…";
+      state.anim.showMean = true;
+      Booth.animate(0, 1, 700, function (t) {
+        var next = new Array(start.length);
+        for (var i = 0; i < start.length; i++) next[i] = Booth.lerp(flipped[i], done[i], t);
+        state.anim.current = next;
+        state.anim.angle = Booth.lerp(angleFrom, angleTo, t);
+        bars.repaint();
+        geometry.repaint();
+      }, function () {
+        state.anim = null;
+        var next = Math.min(12, state.steps + 1);
+        stepsKnob.set(next);
+      });
+    });
+  });
+
+  Booth.reset("reset", function () {
+    state.n = 4;
+    state.marked = new Set([9]);
+    state.steps = 0;
+    state.anim = null;
+    qubitsKnob.set(4, true);
+    stepsKnob.set(0, true);
+    document.getElementById("qubits-value").textContent = "16";
+    document.getElementById("steps-value").textContent = "0";
+    refresh();
+  });
+
+  // -------------------------------------------------------------- attract
+  Booth.attract({
+    idleMs: 45000,
+    periodMs: 11000,
+    note: document.getElementById("attract-note"),
+    onFrame: function (phase) {
+      // sweep the step dial 0..8 and back, which shows the rise and the fall
+      var sweep = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+      var value = Math.round(sweep * 8);
+      if (value !== state.steps) {
+        state.steps = value;
+        stepsKnob.set(value, true);
+        document.getElementById("steps-value").textContent = String(value);
+        refresh();
+      }
+    },
+    onStop: function () { }
+  });
+
+  MathFmt.install(document);
+  Booth.circuits(document);
+
+  refresh();
+})();
+</script>
+</body>
+</html>

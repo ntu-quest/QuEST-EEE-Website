@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VQE on hydrogen &middot; QCC qfest booth</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<main class="station">
+
+  <div class="topbar">
+      <a class="brand" href="index.html">
+        <img class="logo-on-dark" src="quest-logo.png" alt="QuEST">
+        <img class="logo-on-light" src="quest-logo-light.png" alt="QuEST">
+      </a>
+      <nav class="station-nav" aria-label="Stations">
+        <a href="index.html">All stations</a>
+        <a href="grover.html">Search</a>
+        <a href="bell.html">Correlation</a>
+        <a href="stern-gerlach.html">Measurement</a>
+        <a href="vqe-h2.html" aria-current="page">Chemistry</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch between dark and light">Light</button>
+  </div>
+
+  <header class="station-head">
+    <div>
+      <p class="eyebrow">Station &middot; chemistry</p>
+      <h1>Solve a molecule with one knob</h1>
+      <p class="hook">This is a real hydrogen molecule, in a Hamiltonian measured
+        on a real quantum computer in 2016. Turn the knob until the energy stops
+        falling. Where it stops is the answer &mdash; and classical chemistry
+        cannot get there on its own.</p>
+    </div>
+    <div class="button-row">
+      <button id="mode-vqe" aria-pressed="true">Variational</button>
+      <button id="mode-qpe" aria-pressed="false">Phase estimation</button>
+      <button id="zoom" aria-pressed="false">Zoom to the minimum</button>
+      <button id="reset" class="primary">Reset</button>
+    </div>
+  </header>
+
+  <div class="readout">
+    <span class="value warn" id="energy">&minus;0.793</span>
+    <span class="caption" id="caption">
+      Energy of the molecule, in Hartree. Lower is better &mdash; and you cannot
+      go below the true answer, however hard you turn.
+    </span>
+    <span class="pill" id="verdict">keep turning</span>
+    <span class="attract-note" id="attract-note" hidden>demo running &mdash; touch to take over</span>
+  </div>
+
+  <div class="panels two">
+    <section class="panel" id="theta-panel">
+      <h2>The energy landscape you are steering</h2>
+      <canvas id="landscape" data-height="300" role="img"
+              aria-label="Energy plotted against the single ansatz parameter theta"></canvas>
+    </section>
+
+    <section class="panel" id="qpe-panel" hidden>
+      <h2>What the ancilla qubits read out</h2>
+      <canvas id="qpe-hist" data-height="300" role="img"
+              aria-label="Probability of each phase-estimation readout"></canvas>
+      <p class="knob-hint" style="margin:0">
+        Each bar is one possible reading of the ancilla register. Add a qubit and
+        the comb doubles in resolution.
+      </p>
+    </section>
+
+    <section class="panel" id="molecule-panel">
+      <h2>The molecule</h2>
+      <canvas id="molecule" data-height="300" role="img"
+              aria-label="Two hydrogen atoms at the selected bond length"></canvas>
+    </section>
+  </div>
+
+  <div class="controls">
+    <div class="knob" id="theta-knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="theta">The knob (&theta;)</label></span>
+        <span class="knob-value" id="theta-value">0&deg;</span>
+      </div>
+      <input type="range" id="theta" min="-90" max="90" step="0.5" value="0">
+      <span class="knob-hint">&theta; = 0 is what classical chemistry predicts</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="bond">Bond length</label></span>
+        <span class="knob-value" id="bond-value">2.00 &Aring;</span>
+      </div>
+      <input type="range" id="bond" min="0" max="53" step="1" value="36">
+      <span class="knob-hint">Pull the atoms apart and classical chemistry gets worse</span>
+    </div>
+
+    <div class="knob" id="bits-knob" hidden>
+      <div class="knob-label">
+        <span class="knob-name"><label for="bits">Ancilla qubits</label></span>
+        <span class="knob-value" id="bits-value">4</span>
+      </div>
+      <input type="range" id="bits" min="1" max="10" step="1" value="4">
+      <span class="knob-hint">Each extra qubit halves the energy error</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name">How close are you?</span>
+        <span class="knob-value" id="gap">&mdash;</span>
+      </div>
+      <div style="height:14px;background:var(--panel-3);border:1px solid var(--rule-bright);border-radius:7px;overflow:hidden">
+        <div id="gap-bar" style="height:100%;width:0%;background:var(--good)"></div>
+      </div>
+      <span class="knob-hint" id="gap-hint">Chemical accuracy is 1.6 mHa &mdash; get inside that</span>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>Dissociation curve &mdash; solve a bond length and it gets plotted</h2>
+    <canvas id="curve" data-height="230" role="img"
+            aria-label="Ground state energy against bond length, with solved points"></canvas>
+  </section>
+
+
+  <details class="maths">
+    <summary>Show the maths</summary>
+    <div class="maths-body">
+      <p><strong>The molecule as two qubits.</strong> Hydrogen in a minimal basis gives four spin-orbitals; the Bravyi&ndash;Kitaev transform plus the symmetries of the Hartree&ndash;Fock reference reduce it to two qubits:</p>
+      <div class="eq" data-tex="H = g_0 I + g_1 Z_0 + g_2 Z_1 + g_3 Z_0 Z_1 + g_4 X_0 X_1 + g_5 Y_0 Y_1" data-display></div>
+      <p>The six coefficients <span class="eq" data-tex="g_i"></span> are functions of the bond length <span class="eq" data-tex="R"></span>, tabulated in the paper.</p>
+      <p><strong>The ansatz collapses.</strong> Unitary coupled cluster gives one parameter. The generator squares to the identity, so the exponential is just a rotation:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} (X_0 Y_1)^2 &amp;= X_0^2 \otimes Y_1^2 = I \\[3pt] e^{-i\theta X_0 Y_1} &amp;= \cos\theta\, I - i\sin\theta\, X_0 Y_1 \end{aligned}" data-display></div>
+      </div>
+      <p>Acting on the Hartree&ndash;Fock state, and using <span class="eq" data-tex="X\ket{1} = \ket{0}"></span>, <span class="eq" data-tex="Y\ket{0} = i\ket{1}"></span>:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} X_0 Y_1 \ket{10} &amp;= \big(X\ket{1}\big)\otimes\big(Y\ket{0}\big) = i\ket{01} \\[3pt] \ket{\phi(\theta)} &amp;= \cos\theta\,\ket{10} - i\sin\theta\,\big(i\ket{01}\big) \\ &amp;= \cos\theta\,\ket{10} + \sin\theta\,\ket{01} \end{aligned}" data-display></div>
+      </div>
+      <p>A real, two-term state. Every expectation value follows by inspection &mdash; note <span class="eq" data-tex="\ket{10}"></span> and <span class="eq" data-tex="\ket{01}"></span> both have <span class="eq" data-tex="Z_0 Z_1 = -1"></span>:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} \expval{Z_0} &amp;= -\cos^2\theta + \sin^2\theta = -\cos 2\theta \\ \expval{Z_1} &amp;= +\cos^2\theta - \sin^2\theta = +\cos 2\theta \\ \expval{Z_0 Z_1} &amp;= -1 \\ \expval{X_0 X_1} &amp;= \expval{Y_0 Y_1} = 2\cos\theta\sin\theta = \sin 2\theta \end{aligned}" data-display></div>
+      </div>
+      <p>Summing them gives a constant plus one sinusoid &mdash; no matrix exponential anywhere, which is what this page evaluates as you turn the knob:</p>
+      <div class="eq" data-tex="E(\theta) = (g_0 - g_3) + (g_2 - g_1)\cos 2\theta + (g_4 + g_5)\sin 2\theta" data-display></div>
+      <p>So the minimum is available in closed form, and one parameter is genuinely enough for this molecule:</p>
+      <div class="eq" data-tex="E_{\min} = (g_0-g_3) - \sqrt{(g_2-g_1)^2 + (g_4+g_5)^2}" data-display></div>
+      <p><strong>The variational principle</strong> guarantees you cannot cheat:</p>
+      <div class="eq" data-tex="\frac{\bra{\phi(\theta)} H \ket{\phi(\theta)}}{\braket{\phi(\theta)}{\phi(\theta)}} \geq E_0 \quad \text{for every } \theta" data-display></div>
+      <p>The floor you feel when turning the dial is real.</p>
+      <figure class="circuit" data-circuit="vqe">
+        <div class="circuit-stage"><img src="circuits/vqe.svg" alt="VQE circuit: X gate for the Hartree-Fock state, then the one-parameter ansatz"></div>
+        <p class="circuit-tip">Hover or tap any gate to see what it does.</p>
+        <figcaption><b>X</b> prepares the Hartree&ndash;Fock state |10&rang;. The rest is e<sup>&minus;i&theta;X&#8320;Y&#8321;</sup> written out: rotate X and Y onto Z, put the phase on the parity with <b>RZ(2&theta;)</b>, rotate back.</figcaption>
+      </figure>
+      <h4 class="maths-head">The other route: phase estimation</h4>
+      <p>VQE guesses and checks. <strong>Quantum phase estimation</strong> reads the eigenvalue off directly &mdash; it is the textbook algorithm, and the same paper ran it on this very Hamiltonian. Evolving for time <span class="eq" data-tex="t"></span> turns an energy into a phase:</p>
+      <div class="eq" data-tex="U = e^{i H' t}, \qquad H'\ket{\psi_0} = E'\ket{\psi_0} \quad\Rightarrow\quad U\ket{\psi_0} = e^{i E' t}\ket{\psi_0}" data-display></div>
+      <p>QPE reports <span class="eq" data-tex="\varphi"></span> where <span class="eq" data-tex="U\ket{\psi_0} = e^{2\pi i \varphi}\ket{\psi_0}"></span>, and <span class="eq" data-tex="\varphi"></span> must land in <span class="eq" data-tex="[0,1)"></span> to be readable. Ground energies here run from <span class="eq" data-tex="-1.146"></span> to <span class="eq" data-tex="+0.144"></span> Ha, so shift and scale:</p>
+      <div class="eq" data-tex="E' = E_0 + 2.0\ \text{Ha}, \qquad \varphi = \frac{E'}{2.5\ \text{Ha}}, \qquad t = \frac{2\pi}{2.5}" data-display></div>
+      <p>Choosing that window is part of the method, not a trick: you must know roughly where the eigenvalue is before you can pin it down precisely.</p>
+      <p><strong>How the circuit reads it.</strong> Put <span class="eq" data-tex="n"></span> ancillas in superposition, apply <span class="eq" data-tex="U^{2^k}"></span> controlled on ancilla <span class="eq" data-tex="k"></span>, and the register picks up a phase ramp:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} \ket{\chi} &amp;= \frac{1}{\sqrt{2^n}}\sum_{x=0}^{2^n-1} e^{2\pi i x \varphi}\ket{x} \\[3pt] &amp;\xrightarrow{\ \text{inverse QFT}\ } \ \text{peaked at } y \approx 2^n \varphi \end{aligned}" data-display></div>
+      </div>
+      <p>Measuring the ancillas gives</p>
+      <div class="eq" data-tex="P(y) = \left|\frac{\sin\big(2^n \pi \delta\big)}{2^n \sin(\pi\delta)}\right|^2, \qquad \delta = \varphi - \frac{y}{2^n}" data-display></div>
+      <p>If <span class="eq" data-tex="\varphi"></span> happens to be exactly <span class="eq" data-tex="n"></span> bits long, that is 1 on the right answer and 0 everywhere else. Otherwise the nearest bin still wins with probability at least <span class="eq" data-tex="4/\pi^2 \approx 0.405"></span>, and the energy error is at most half a bin:</p>
+      <div class="eq" data-tex="\Delta E \leq \frac{2.5\ \text{Ha}}{2^{\,n+1}}" data-display></div>
+      <p><strong>One more qubit, half the error.</strong> That is the whole behaviour of the bit slider. Reaching chemical accuracy (<span class="eq" data-tex="1.6 \times 10^{-3}"></span> Ha) needs <span class="eq" data-tex="n = 11"></span> ancillas &mdash; and, crucially, coherence long enough to run <span class="eq" data-tex="U^{2^{10}}"></span>. That coherence requirement is exactly what NISQ hardware does not have, and exactly why VQE was invented.</p>
+      <figure class="circuit" data-circuit="qpe">
+        <div class="circuit-stage"><img src="circuits/qpe.svg" alt="Phase estimation circuit: Hadamards on three ancillas, controlled unitaries, inverse QFT, measurement"></div>
+        <p class="circuit-tip">Hover or tap any gate to see what it does.</p>
+        <figcaption>Three ancillas reading the H&#8322; ground energy. The controlled boxes are <b>U&#8308;, U&sup2;, U&sup1;</b> left to right; <b>QFT&dagger;</b> turns the phase ramp into a number. Wires 3&ndash;4 are the molecule.</figcaption>
+      </figure>
+      <p><strong>One number this station deliberately does not show.</strong> The published table stops at 2.85 &Aring;, before the curve flattens, so a bond dissociation energy computed from it would read about 5.5 eV against an experimental 4.75 eV. The curve is honest; that derived number would not be.</p>
+      <div class="cite">
+        <b>O&rsquo;Malley et al.</b>, Phys. Rev. X 6 (2016) 031007, arXiv:1512.06860
+        &mdash; Eq. (1), Eq. (3) and Table I, the source of every coefficient here
+        (basis STO-6G) &middot;
+        <b>Peruzzo et al.</b>, Nat. Commun. 5 (2014) 4213 &mdash; VQE &middot;
+        <b>McClean et al.</b>, New J. Phys. 18 (2016) 023023 &middot;
+        <b>Kitaev</b>, arXiv:quant-ph/9511026 and <b>Nielsen &amp; Chuang</b> &sect;5.2
+        &mdash; phase estimation &middot;
+        <b>Abrams &amp; Lloyd</b>, Phys. Rev. Lett. 83 (1999) 5162.
+        Values asserted in <code>verify/test_reference.py</code>.
+      </div>
+    </div>
+  </details>
+
+  <footer class="station-foot">
+    <span>QCC qfest &middot; station 4 of 4</span>
+    <span><a href="index.html">All stations</a></span>
+  </footer>
+</main>
+
+<script src="data/constants.js"></script>
+<script src="physics.js"></script>
+<script src="mathfmt.js"></script>
+<script src="circuits/hotspots.js"></script>
+<script src="shared.js"></script>
+<script>
+(function () {
+  "use strict";
+  var QCC = Booth.requireConstants();
+  Booth.initTheme();
+  if (!window.Physics) throw new Error("booth/physics.js did not load");
+
+  var H2 = Physics.h2;
+  var ROWS = QCC.h2.rows;
+  var CHEMICAL_ACCURACY = QCC.h2.chemicalAccuracy;
+
+  var C = Booth.palette({
+    ink: "--ink", inkSoft: "--ink-soft",
+    inkFaint: "--ink-faint", rule: "--rule",
+    ruleBright: "--rule-bright", marked: "--marked",
+    amp: "--amp", good: "--good", bad: "--bad",
+    panel2: "--panel-2"
+  });
+
+  /* Opens at a stretched bond on purpose.  At equilibrium the knob is worth
+     0.021 Ha against a 1.6 Ha axis and a visitor sees nothing move; here it is
+     worth 0.165 Ha and the dip is unmissable. */
+  var DEFAULT_INDEX = (function () {
+    for (var i = 0; i < ROWS.length; i++) {
+      if (Math.abs(ROWS[i].R - QCC.h2.defaultR) < 1e-9) return i;
+    }
+    return ROWS.length - 1;
+  })();
+
+  var state = { thetaDeg: 0, bondIndex: DEFAULT_INDEX, zoom: false, solved: {},
+               mode: "vqe", bits: 4 };
+
+  function row() { return ROWS[state.bondIndex]; }
+  function theta() { return state.thetaDeg * Math.PI / 180; }
+  function energy() { return H2.energy(row(), theta()); }
+  function exact() { return row().eExact; }
+  function hartreeFock() { return row().eHartreeFock; }
+  function gap() { return energy() - exact(); }
+
+  /* y-range for the landscape: the whole curve, or a window around the
+     interesting part when zoomed. */
+  function landscapeRange() {
+    var r = row();
+    var amplitude = Math.hypot(r.cosAmp, r.sinAmp);
+    var low = r.offset - amplitude, high = r.offset + amplitude;
+    if (!state.zoom) return { low: low - 0.05, high: high + 0.05 };
+    var span = Math.max(hartreeFock() - exact(), 0.01);
+    return { low: exact() - 0.25 * span, high: hartreeFock() + 0.6 * span };
+  }
+
+  // ------------------------------------------------------------ landscape
+  var landscape = Booth.canvas(document.getElementById("landscape"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var padL = 62, padR = 16, padT = 16, padB = 34;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var range = landscapeRange();
+
+    function yFor(e) {
+      return padT + plotH * (1 - (e - range.low) / (range.high - range.low));
+    }
+    function xFor(deg) { return padL + ((deg + 90) / 180) * plotW; }
+
+    // grid
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "right";
+    for (var k = 0; k <= 4; k++) {
+      var value = range.low + (range.high - range.low) * k / 4;
+      var y = yFor(value);
+      ctx.strokeStyle = C.rule;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padL, Booth.crisp(y)); ctx.lineTo(w - padR, Booth.crisp(y));
+      ctx.stroke();
+      ctx.fillStyle = C.inkFaint;
+      ctx.fillText(value.toFixed(2), padL - 8, y + 4);
+    }
+
+    // the exact ground energy -- the floor nothing can cross
+    var floorY = yFor(exact());
+    ctx.strokeStyle = C.good;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, floorY); ctx.lineTo(w - padR, floorY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.good;
+    ctx.textAlign = "left";
+    ctx.font = "600 12px " + Booth.css("--sans");
+    ctx.fillText("true answer " + exact().toFixed(4), padL + 6, floorY - 7);
+
+    // the classical (Hartree-Fock) answer at theta = 0
+    var hfY = yFor(hartreeFock());
+    ctx.strokeStyle = C.inkFaint;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, hfY); ctx.lineTo(w - padR, hfY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "12px " + Booth.css("--sans");
+    ctx.fillText("classical chemistry " + hartreeFock().toFixed(4), padL + 6, hfY - 7);
+
+    // E(theta)
+    ctx.strokeStyle = C.amp;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    var started = false;
+    for (var px = 0; px <= plotW; px++) {
+      var deg = -90 + (px / plotW) * 180;
+      var e = H2.energy(row(), deg * Math.PI / 180);
+      if (e < range.low || e > range.high) { started = false; continue; }
+      var x = padL + px, y = yFor(e);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // where the visitor is
+    var nowE = energy();
+    if (nowE >= range.low && nowE <= range.high) {
+      var nx = xFor(state.thetaDeg), ny = yFor(nowE);
+      ctx.strokeStyle = C.marked;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath();
+      ctx.moveTo(nx, ny); ctx.lineTo(nx, padT + plotH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.marked;
+      ctx.beginPath();
+      ctx.arc(nx, ny, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    [-90, -45, 0, 45, 90].forEach(function (deg) {
+      ctx.fillText(deg + "°", xFor(deg), h - 11);
+    });
+  });
+
+  // ------------------------------------------------------------- molecule
+  var molecule = Booth.canvas(document.getElementById("molecule"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var cx = w / 2, cy = h * 0.44;
+    var radius = row().R;
+    var separation = Math.min(w * 0.34, 26 + radius * 52);
+
+    // shared electron density -- fades as the atoms separate, which is the
+    // physical story behind the growing correlation energy
+    var overlap = Math.max(0, 1 - (radius - 0.4) / 1.8);
+    if (overlap > 0.02) {
+      var gradient = ctx.createLinearGradient(cx - separation, cy, cx + separation, cy);
+      gradient.addColorStop(0, C.amp);
+      gradient.addColorStop(0.5, C.marked);
+      gradient.addColorStop(1, C.amp);
+      ctx.globalAlpha = 0.10 + 0.34 * overlap;
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, separation + 34, 34 + 20 * overlap, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    [-1, 1].forEach(function (side) {
+      var x = cx + side * separation;
+      ctx.fillStyle = C.ink;
+      ctx.beginPath();
+      ctx.arc(x, cy, 19, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = Booth.css("--ground");
+      ctx.font = "700 16px " + Booth.css("--sans");
+      ctx.textAlign = "center";
+      ctx.fillText("H", x, cy + 6);
+    });
+
+    // bond length dimension line
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - separation, cy + 34); ctx.lineTo(cx + separation, cy + 34);
+    ctx.moveTo(cx - separation, cy + 28); ctx.lineTo(cx - separation, cy + 40);
+    ctx.moveTo(cx + separation, cy + 28); ctx.lineTo(cx + separation, cy + 40);
+    ctx.stroke();
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "13px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    ctx.fillText(radius.toFixed(2) + " Å", cx, cy + 54);
+
+    // how much of the state the knob has mixed in
+    var mix = H2.ansatzState(theta());
+    var excited = mix.excited * mix.excited;
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "12px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    ctx.fillText("your state: " + Math.round((1 - excited) * 100) + "% classical, "
+                 + Math.round(excited * 100) + "% correction", cx, h - 34);
+
+    var barW = Math.min(w * 0.7, 320), barX = cx - barW / 2, barY = h - 24;
+    ctx.fillStyle = C.panel2;
+    ctx.fillRect(barX, barY, barW, 10);
+    ctx.fillStyle = C.amp;
+    ctx.fillRect(barX, barY, barW * (1 - excited), 10);
+    ctx.fillStyle = C.marked;
+    ctx.fillRect(barX + barW * (1 - excited), barY, barW * excited, 10);
+  });
+
+  // --------------------------------------------------------------- curve
+  var curve = Booth.canvas(document.getElementById("curve"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var padL = 62, padR = 18, padT = 16, padB = 34;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var low = -1.22, high = -0.55;
+
+    function xFor(r) { return padL + ((r - 0.2) / (2.85 - 0.2)) * plotW; }
+    function yFor(e) { return padT + plotH * (1 - (e - low) / (high - low)); }
+
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "right";
+    [-1.2, -1.0, -0.8, -0.6].forEach(function (value) {
+      var y = yFor(value);
+      ctx.strokeStyle = C.rule;
+      ctx.beginPath();
+      ctx.moveTo(padL, Booth.crisp(y)); ctx.lineTo(w - padR, Booth.crisp(y));
+      ctx.stroke();
+      ctx.fillStyle = C.inkFaint;
+      ctx.fillText(value.toFixed(1), padL - 8, y + 4);
+    });
+
+    // classical curve, for contrast
+    ctx.strokeStyle = C.inkFaint;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ROWS.forEach(function (r, i) {
+      var x = xFor(r.R), y = yFor(Math.max(low, r.eHartreeFock));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // the true curve
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ROWS.forEach(function (r, i) {
+      var x = xFor(r.R), y = yFor(r.eExact);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // points the visitor has actually solved
+    Object.keys(state.solved).forEach(function (key) {
+      var r = ROWS[parseInt(key, 10)];
+      ctx.fillStyle = C.good;
+      ctx.beginPath();
+      ctx.arc(xFor(r.R), yFor(r.eExact), 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // where you are now
+    ctx.fillStyle = C.marked;
+    ctx.beginPath();
+    ctx.arc(xFor(row().R), yFor(Math.max(low, Math.min(high, energy()))), 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.textAlign = "center";
+    ctx.font = "11px " + Booth.css("--sans");
+    [0.5, 1.0, 1.5, 2.0, 2.5].forEach(function (r) {
+      ctx.fillText(r.toFixed(1), xFor(r), h - 11);
+    });
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "12px " + Booth.css("--sans");
+    ctx.fillText("bond length (Å) →", padL, padT + 2);
+    ctx.fillStyle = C.good;
+    ctx.textAlign = "right";
+    ctx.fillText(Object.keys(state.solved).length + " of " + ROWS.length + " solved",
+                 w - padR, padT + 2);
+  });
+
+  // ----------------------------------------------------------- QPE panel
+  var QPE = Physics.qpe;
+
+  var histogram = Booth.canvas(document.getElementById("qpe-hist"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var result = QPE.forRow(row(), state.bits);
+    var probabilities = result.probabilities;
+    var size = probabilities.length;
+
+    var padL = 44, padR = 14, padT = 34, padB = 40;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var slot = plotW / size;
+    var barW = Math.max(1.5, slot * 0.76);
+
+    // the true phase, as a continuous marker the comb is trying to resolve
+    var trueX = padL + result.phase * plotW;
+    ctx.strokeStyle = C.good;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(trueX, padT - 10); ctx.lineTo(trueX, padT + plotH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.good;
+    ctx.font = "600 12px " + Booth.css("--sans");
+    ctx.textAlign = trueX > w * 0.7 ? "right" : "left";
+    ctx.fillText("true phase", trueX + (trueX > w * 0.7 ? -6 : 6), padT - 14);
+
+    for (var y = 0; y < size; y++) {
+      var barH = probabilities[y] * plotH;
+      var x = padL + slot * y + (slot - barW) / 2;
+      ctx.fillStyle = (y === result.outcome) ? C.marked : C.amp;
+      ctx.fillRect(x, padT + plotH - barH, barW, Math.max(1, barH));
+    }
+
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, Booth.crisp(padT + plotH));
+    ctx.lineTo(w - padR, Booth.crisp(padT + plotH));
+    ctx.stroke();
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "left";
+    ctx.fillText("0", padL, h - 20);
+    ctx.textAlign = "right";
+    ctx.fillText("1", w - padR, h - 20);
+    ctx.textAlign = "center";
+    ctx.fillText("ancilla reading  y / 2^" + state.bits + "  (phase)", w / 2, h - 20);
+    ctx.fillStyle = C.marked;
+    ctx.fillText("most likely: y = " + result.outcome + "  ·  P = "
+                 + (result.probability * 100).toFixed(1) + "%", w / 2, h - 5);
+  });
+
+  // -------------------------------------------------------------- refresh
+  function refreshQpe() {
+    var result = QPE.forRow(row(), state.bits);
+
+    var element = document.getElementById("energy");
+    element.textContent = result.estimatedEnergy.toFixed(3);
+    element.className = "value " + (result.error < CHEMICAL_ACCURACY ? "good"
+                        : result.error < 0.05 ? "warn" : "bad");
+
+    var milli = result.error * 1000;
+    document.getElementById("gap").textContent = milli.toFixed(milli < 10 ? 1 : 0) + " mHa";
+    var fraction = Math.max(0, Math.min(1,
+      1 - Math.log10(Math.max(milli, 0.01) / 0.01) / 4));
+    document.getElementById("gap-bar").style.width = (fraction * 100).toFixed(1) + "%";
+
+    var verdict = document.getElementById("verdict");
+    var caption = document.getElementById("caption");
+    if (result.error < CHEMICAL_ACCURACY) {
+      verdict.textContent = "inside chemical accuracy";
+      verdict.className = "pill good";
+    } else {
+      verdict.textContent = "±" + (result.bound * 1000).toFixed(0) + " mHa at "
+                            + state.bits + " qubit" + (state.bits === 1 ? "" : "s");
+      verdict.className = "pill warn";
+    }
+    caption.textContent = "The energy read straight off the ancilla register. "
+      + "Each extra qubit halves the worst-case error — but doubles how long the "
+      + "molecule must stay coherent.";
+
+    document.getElementById("bond-value").textContent = row().R.toFixed(2) + " Å";
+    document.getElementById("gap-hint").textContent =
+      "Half a bin is " + (result.bound * 1000).toFixed(1)
+      + " mHa; chemical accuracy needs 11 qubits";
+
+    histogram.repaint();
+    molecule.repaint();
+    curve.repaint();
+  }
+
+  function refresh() {
+    if (state.mode === "qpe") return refreshQpe();
+    var e = energy(), g = gap();
+
+    document.getElementById("energy").textContent = e.toFixed(3);
+    var element = document.getElementById("energy");
+    element.className = "value " + (g < CHEMICAL_ACCURACY ? "good"
+                        : e < hartreeFock() ? "warn" : "bad");
+
+    var milli = g * 1000;
+    document.getElementById("gap").textContent =
+      milli < 0.05 ? "0.0 mHa" : milli.toFixed(1) + " mHa";
+
+    // bar fills as the gap closes, on a log-ish scale so the last bit is visible
+    var fraction = Math.max(0, Math.min(1, 1 - Math.log10(Math.max(milli, 0.01) / 0.01) / 4));
+    document.getElementById("gap-bar").style.width = (fraction * 100).toFixed(1) + "%";
+
+    var verdict = document.getElementById("verdict");
+    var caption = document.getElementById("caption");
+    if (g < CHEMICAL_ACCURACY) {
+      verdict.textContent = "solved — inside chemical accuracy";
+      verdict.className = "pill good";
+      caption.textContent = "That is the exact ground state energy of this molecule. "
+        + "Classical mean-field theory stops " + ((hartreeFock() - exact()) * 1000).toFixed(0)
+        + " mHa short of it.";
+      if (!state.solved[state.bondIndex]) {
+        state.solved[state.bondIndex] = true;
+      }
+    } else if (e < hartreeFock() - 1e-9) {
+      verdict.textContent = "past classical, keep going";
+      verdict.className = "pill warn";
+      caption.textContent = "You have already beaten the classical answer. "
+        + "The floor is the dashed green line.";
+    } else {
+      verdict.textContent = "keep turning";
+      verdict.className = "pill";
+      caption.textContent = "Energy of the molecule, in Hartree. Lower is better — "
+        + "and you cannot go below the true answer, however hard you turn.";
+    }
+
+    document.getElementById("bond-value").textContent = row().R.toFixed(2) + " Å";
+    document.getElementById("gap-hint").textContent =
+      "Chemical accuracy is 1.6 mHa — get inside that";
+
+    landscape.repaint();
+    molecule.repaint();
+    curve.repaint();
+  }
+
+  // ---------------------------------------------------------------- knobs
+  var thetaKnob = Booth.knob("theta", function (value) {
+    state.thetaDeg = value;
+    refresh();
+  }, function (value) { return value.toFixed(1) + "°"; });
+
+  var bondKnob = Booth.knob("bond", function (value) {
+    state.bondIndex = Math.max(0, Math.min(ROWS.length - 1, Math.round(value)));
+    refresh();
+  }, function () { return ROWS[state.bondIndex] ? ROWS[state.bondIndex].R.toFixed(2) + " Å" : ""; });
+
+  function setMode(mode) {
+    state.mode = mode;
+    var isQpe = mode === "qpe";
+    document.getElementById("mode-vqe").setAttribute("aria-pressed", String(!isQpe));
+    document.getElementById("mode-qpe").setAttribute("aria-pressed", String(isQpe));
+    document.getElementById("qpe-panel").hidden = !isQpe;
+    document.getElementById("theta-panel").hidden = isQpe;
+    document.getElementById("bits-knob").hidden = !isQpe;
+    document.getElementById("theta-knob").hidden = isQpe;
+    document.getElementById("zoom").hidden = isQpe;
+    refresh();
+  }
+  document.getElementById("mode-vqe").addEventListener("click", function () { setMode("vqe"); });
+  document.getElementById("mode-qpe").addEventListener("click", function () { setMode("qpe"); });
+
+  var bitsKnob = Booth.knob("bits", function (value) {
+    state.bits = value;
+    refresh();
+  });
+
+  document.getElementById("zoom").addEventListener("click", function () {
+    state.zoom = !state.zoom;
+    this.setAttribute("aria-pressed", String(state.zoom));
+    this.textContent = state.zoom ? "Show the whole curve" : "Zoom to the minimum";
+    refresh();
+  });
+
+  Booth.reset("reset", function () {
+    state.thetaDeg = 0;
+    state.bondIndex = DEFAULT_INDEX;
+    state.zoom = false;
+    state.solved = {};
+    state.bits = 4;
+    bitsKnob.set(4, true);
+    document.getElementById("bits-value").textContent = "4";
+    setMode("vqe");
+    thetaKnob.set(0, true);
+    bondKnob.set(DEFAULT_INDEX, true);
+    document.getElementById("theta-value").textContent = "0.0°";
+    var zoomButton = document.getElementById("zoom");
+    zoomButton.setAttribute("aria-pressed", "false");
+    zoomButton.textContent = "Zoom to the minimum";
+    refresh();
+  });
+
+  Booth.attract({
+    idleMs: 45000, periodMs: 9000,
+    note: document.getElementById("attract-note"),
+    onFrame: function (phase) {
+      if (state.mode === "qpe") {
+        // walk the qubit count up so the comb visibly sharpens
+        var bits = 1 + Math.floor(phase * 10);
+        if (bits !== state.bits) {
+          state.bits = bits;
+          bitsKnob.set(bits, true);
+          document.getElementById("bits-value").textContent = String(bits);
+          refresh();
+        }
+        return;
+      }
+      // sweep theta through the well and back so the dip is unmistakable
+      var target = H2.optimalTheta(row()) * 180 / Math.PI;
+      var sweep = Math.sin(phase * Math.PI * 2);
+      var value = Math.round((target + sweep * 35) * 2) / 2;
+      if (value !== state.thetaDeg) {
+        state.thetaDeg = value;
+        thetaKnob.set(value, true);
+        document.getElementById("theta-value").textContent = value.toFixed(1) + "°";
+        refresh();
+      }
+    }
+  });
+
+  MathFmt.install(document);
+  Booth.circuits(document);
+
+  refresh();
+})();
+</script>
+</body>
+</html>

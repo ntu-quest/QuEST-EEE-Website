@@ -1,0 +1,16 @@
+---
+/* StatementBlock — Manrope 800, alone on the paper ground. The only pure
+   typography moment on a page. Three instances site-wide; a fourth means one
+   of them is not carrying its weight. */
+interface Props { cite?: string; }
+const { cite } = Astro.props;
+---
+<section class="section statement-block">
+  <div class="wrap">
+    <p class="statement"><slot /></p>
+    {cite && <p class="statement-cite">{cite}</p>}
+  </div>
+</section>
+<style>
+  .statement-block { padding-block: clamp(4rem, 10vw, 8rem); }
+</style>

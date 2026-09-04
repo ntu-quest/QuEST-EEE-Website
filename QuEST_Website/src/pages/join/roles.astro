@@ -1,0 +1,91 @@
+---
+/* /join/roles — the departments, from the Structure & Operational Framework.
+   The Operations Lead vacancy is shown rather than hidden: a recruitment ad in
+   the place people already look. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import CTABand from '../../components/CTABand.astro';
+import { activePeople, liveLinks } from '../../lib/content';
+import { DEPARTMENTS } from '../../lib/site';
+
+const people = await activePeople();
+const form = (await liveLinks('join')).find((l) => l.data.icon === 'form');
+
+const DEPTS = [
+  { key: 'academics', what: 'Runs the workshop series and the guest lectures: writing sessions, preparing materials, and teaching them.', want: 'People who like explaining things, and do not mind being the one who has to understand it first.' },
+  { key: 'projects-research', what: 'Runs the projects and the mentored research initiatives, split across hardware and software.', want: 'People who want to finish something. Prior quantum knowledge is genuinely not required.' },
+  { key: 'publicity', what: 'Posters, socials, photography, and everything anyone outside the club sees first.', want: 'Designers, photographers, and anyone who writes a caption that is not boring.' },
+  { key: 'business-outreach', what: 'Collaborations with other universities, sponsorship, and industry contact.', want: 'People who will send the email nobody else wants to send.' },
+  { key: 'operations', what: 'Venues, equipment, logistics, and the run-of-show for every event.', want: 'People who notice when a room has no adaptor before anyone else does.' },
+] as const;
+---
+<Base title="Roles and departments" description="The five QuEST@EEE departments, what each one does, and who leads it.">
+  <PageHeader
+    eyebrow="Join"
+    title="Roles and departments"
+    lede="Five departments, each led by a member of the committee. You apply to a department, not to a job title — the work shapes itself around who turns up."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      {DEPTS.map((dept) => {
+        const leads = people.filter((p) => p.data.department === dept.key);
+        return (
+          <article class="dept">
+            <div class="dept-head">
+              <h2>{DEPARTMENTS[dept.key]}</h2>
+              <p class="leads mono">
+                {leads.map((l) => (l.data.vacancy ? 'Lead position open' : l.data.preferredName ?? l.data.name)).join(' · ')}
+              </p>
+            </div>
+            <div class="dept-body">
+              <p>{dept.what}</p>
+              <p class="want"><span class="eyebrow">Who fits</span>{dept.want}</p>
+              {leads.some((l) => l.data.vacancy) && (
+                <p class="vacancy">
+                  <span class="badge badge-open"><span class="badge-dot" aria-hidden="true"></span>Lead position open</span>
+                  We are looking for someone to run this. It is a committee seat, not a helper role.
+                </p>
+              )}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      {form ? (
+        <>
+          <h2>Applying</h2>
+          <p class="lede">Sub-committee recruitment runs in cycles. The form below is the current one.</p>
+          <p><a class="btn" href={form.data.url}><Icon name="form" size={18} /> Open the recruitment form</a></p>
+        </>
+      ) : (
+        <>
+          <h2>Applying</h2>
+          <p class="lede">
+            No recruitment cycle is open right now. Join the Telegram group and you will see the next
+            one before anyone else does.
+          </p>
+          <p><a class="btn" href="https://t.me/+F4ofanIj4lJmNmY1">Join the group</a></p>
+        </>
+      )}
+    </div>
+  </section>
+
+  <CTABand title="Rather talk to a person first?" href="/contact" action="Find the right inbox" />
+</Base>
+<style>
+  .dept { display: grid; grid-template-columns: 18rem 1fr; gap: 2rem; padding-block: 2rem; border-top: 1px solid var(--rule); }
+  .dept:first-child { border-top: 0; padding-top: 0; }
+  .dept h2 { font-size: var(--t-sub); margin-bottom: 0.35rem; }
+  .leads { font-size: var(--t-fine); color: var(--ink-faint); margin: 0; }
+  .dept-body { max-width: var(--measure); }
+  .dept-body p { color: var(--ink-soft); }
+  .want .eyebrow { display: block; margin-bottom: 0.3rem; }
+  .vacancy { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; color: var(--ink-soft); }
+  @media (max-width: 820px) { .dept { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }
+</style>

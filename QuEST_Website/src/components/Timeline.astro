@@ -1,0 +1,49 @@
+---
+/* Timeline — horizontal on desktop, vertical on mobile, one data source.
+   Everything is visible at rest: no scroll-triggered reveal, so a shared link
+   previews correctly. */
+import type { CollectionEntry } from 'astro:content';
+import Figure from './Figure.astro';
+import { mediaList } from '../lib/content';
+
+interface Props { milestones: CollectionEntry<'milestones'>[]; compact?: boolean; }
+const { milestones, compact = false } = Astro.props;
+const photos = await mediaList(milestones.map((m) => m.data.photo ?? '').filter(Boolean));
+const byId = new Map(photos.map((p) => [p.id, p]));
+---
+<ol class:list={['timeline', compact && 'compact']}>
+  {milestones.map((m) => {
+    const photo = m.data.photo ? byId.get(m.data.photo) : null;
+    return (
+      <li>
+        <p class="year mono">{m.data.year}</p>
+        {photo && !compact && (
+          <div class="shot"><Figure entry={photo} bare aspect="4 / 3" sizes="(max-width: 900px) 100vw, 260px" /></div>
+        )}
+        <h3>{m.data.title}</h3>
+        <p class="blurb">{m.data.blurb}</p>
+        {m.data.links.map((link) => <p class="more"><a class="text-link" href={link.url}>{link.label} →</a></p>)}
+      </li>
+    );
+  })}
+</ol>
+<style>
+  .timeline {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: var(--gap);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .timeline li { border-top: 2px solid var(--ink); padding-top: 1rem; }
+  .year {
+    font-size: var(--t-fine); letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 0.6rem;
+  }
+  .shot { margin-bottom: 0.9rem; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+  h3 { font-size: var(--t-body); margin-bottom: 0.35rem; }
+  .blurb { font-size: var(--t-small); color: var(--ink-soft); margin: 0; }
+  .more { margin: 0.6rem 0 0; }
+  .compact h3 { font-size: var(--t-small); }
+  .compact .blurb { font-size: var(--t-label); }
+  @media (max-width: 900px) { .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .timeline { grid-template-columns: minmax(0, 1fr); } }
+</style>

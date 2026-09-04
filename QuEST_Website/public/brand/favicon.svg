@@ -1,0 +1,19 @@
+<!-- The bra-ket alone, which is the part of the mark that survives at 32px.
+     The full gradient lockup must never be used this small: "EST" is its
+     weakest element and disappears first. A flat one-colour mark is still
+     outstanding — see BUILD_BRIEF §4.4. Colours are duplicated here because
+     an SVG favicon is loaded outside the document and cannot read tokens.css. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .ground { fill: #FAFAFC }
+    .mark   { fill: none; stroke: #4B3F94; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round }
+    @media (prefers-color-scheme: dark) {
+      .ground { fill: #0C0B12 }
+      .mark   { stroke: #A79BEE }
+    }
+  </style>
+  <rect class="ground" width="32" height="32" rx="4"/>
+  <path class="mark" d="M9.5 7 4.8 16l4.7 9M22.5 7l4.7 9-4.7 9"/>
+  <circle class="mark" cx="16" cy="15.4" r="4.6"/>
+  <path class="mark" d="M18.6 19.1 21 22.6"/>
+</svg>

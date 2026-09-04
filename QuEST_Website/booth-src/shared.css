@@ -1,0 +1,649 @@
+/* QCC qfest booth -- shared visual system.
+ *
+ * Single-theme by choice: these pages run on a booth screen in an exhibition
+ * hall, so the design commits to a dark ground and paints every colour
+ * explicitly rather than inheriting anything from the host.
+ *
+ * Colour discipline, after review:
+ *   - saturated colour belongs to MARKS -- bars, needles, arrows, the slider
+ *     thumb, a status dot. Never to body text, and never to the edge of a box.
+ *   - containers are separated by a soft internal gradient and a hairline
+ *     neutral border, not by a glowing rule.
+ *   - state is carried by a small dot plus words, so it survives both bad
+ *     projector colour and colour-blind viewers.
+ *
+ * Type: one family throughout. Telegraf if it is installed, otherwise Avenir
+ * Next, which is the closest geometric grotesque macOS ships. Maths is set in
+ * Computer Modern -- the actual LaTeX face, found in ~/Library/Fonts here.
+ *
+ * Venue rules: nothing below 16px, headline numbers read from two metres,
+ * touch targets at least 44px.
+ */
+
+:root {
+  --ground:      #07060F;
+  --panel:       #100E1B;
+  --panel-2:     #171528;
+  --panel-3:     #1F1C33;
+
+  --ink:         #E7EAF3;
+  --ink-soft:    #9AA0B8;
+  --ink-faint:   #6A7089;
+  --rule:        #201E33;
+  --rule-soft:   #1A1829;
+  --rule-bright: #2E2B47;   /* canvas strokes: axes, outlines, dial rings */
+
+  /* marks only -- bars, needles, arrows, thumbs, dots */
+  --marked:      #9F8CF0;
+  --marked-dim:  #3A2F63;
+  --amp:         #6FC9E8;
+  --amp-dim:     #274456;
+  --negative:    #E4809F;
+  --good:        #56C9A4;
+  --bad:         #E4809F;
+
+  /* muted tints, for text that must still carry a little state */
+  --tint-good:   #A9D6C6;
+  --tint-warn:   #BDB2E4;
+  --tint-bad:    #D9AFBC;
+
+  /* Kept on one line each: these are read by Booth.css() and fed straight to
+     canvas ctx.font, and a newline inside the value makes the canvas font
+     shorthand parse fail silently, leaving the previous face in place. */
+  --sans: "Telegraf", "PP Telegraf", "Avenir Next", Avenir, "Futura", "Gill Sans", Helvetica, Arial, sans-serif;
+  --math: "CMU Serif", "Latin Modern Math", "STIX Two Math", STIXGeneral, "Cambria Math", Georgia, serif;
+  --mono: "CMU Typewriter Text", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --gap: 20px;
+  --radius: 14px;
+
+  /* Containers separate by tone on dark and by shadow on light. */
+  --elevation: none;
+
+  /* the soft internal wash that separates a container from the ground */
+  --wash: linear-gradient(158deg,
+            rgba(255,255,255,.045) 0%,
+            rgba(255,255,255,.012) 34%,
+            rgba(255,255,255,0) 68%);
+}
+
+/* Light theme.  The booth runs dark, but a bright hall or a printed handout
+   wants the opposite, and the QuEST mark ships in both polarities.
+   Accents are darkened here: the values that read as marks on near-black are
+   far too pale to sit on white. */
+:root[data-theme="light"] {
+  /* White cards on a light cool-neutral ground, separated by a soft shadow
+     rather than a drawn border -- borders everywhere read as busy on light.
+     Accents are deep: the dark palette's values are far too pale on white. */
+  --ground:      #F4F4F8;
+  --panel:       #FFFFFF;
+  --panel-2:     #F8F8FC;
+  --panel-3:     #EEEEF5;
+
+  --ink:         #15151F;
+  --ink-soft:    #4A4A5C;
+  --ink-faint:   #77778A;
+  --rule:        #E9E9F1;
+  --rule-soft:   #F2F2F7;
+  --rule-bright: #D7D7E4;
+
+  --marked:      #4A35B8;
+  --marked-dim:  #DED9F6;
+  --amp:         #0E6F92;
+  --amp-dim:     #D2E7F0;
+  --negative:    #B83A56;
+  --good:        #12795A;
+  --bad:         #B83A56;
+
+  --tint-good:   #0F6B50;
+  --tint-warn:   #40309C;
+  --tint-bad:    #A03149;
+
+  --elevation: 0 1px 2px rgba(21, 21, 31, .05),
+               0 10px 30px -14px rgba(21, 21, 31, .17);
+
+  /* barely there: on light, the shadow does the separating */
+  --wash: linear-gradient(158deg,
+            rgba(21,21,31,.014) 0%,
+            rgba(21,21,31,.004) 40%,
+            rgba(21,21,31,0) 70%);
+}
+
+:root[data-theme="light"] .panel,
+:root[data-theme="light"] .controls,
+:root[data-theme="light"] details.maths,
+:root[data-theme="light"] figure.circuit,
+:root[data-theme="light"] .eq[data-display],
+:root[data-theme="light"] a.card {
+  border-color: rgba(21, 21, 31, .055);
+  border-radius: 16px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(1200px 560px at 8% -12%, #ECE8FA 0%, transparent 62%),
+    radial-gradient(900px 460px at 96% 0%, #E4F1F7 0%, transparent 58%),
+    var(--ground);
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1100px 480px at 10% -10%, #151130 0%, transparent 60%),
+    radial-gradient(820px 420px at 94% 2%, #0B1F2E 0%, transparent 56%),
+    var(--ground);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.station {
+  min-height: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 22px 28px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.station-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 18px;
+}
+
+.station-head h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.08;
+}
+
+.station-head .hook {
+  margin: 9px 0 0;
+  color: var(--ink-soft);
+  font-size: clamp(0.98rem, 1.4vw, 1.08rem);
+  max-width: 66ch;
+  font-weight: 400;
+}
+
+.eyebrow {
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin: 0 0 6px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.brand { display: inline-flex; align-items: center; text-decoration: none; flex: 0 0 auto; }
+.brand img { height: 104px; width: auto; display: block; }
+.brand-hero img { height: 240px; }
+@media (max-width: 1000px) {
+  .brand img { height: 84px; }
+  .brand-hero img { height: 176px; }
+}
+@media (max-width: 700px) {
+  .brand img { height: 64px; }
+  .brand-hero img { height: 124px; }
+}
+.brand:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 4px; border-radius: 6px; }
+
+/* One mark per polarity; the theme decides which is shown.
+   These must out-specify `.brand img` above, which sets display: block --
+   a bare `.logo-on-light` loses to it and both marks render at once. */
+.brand img.logo-on-light { display: none; }
+:root[data-theme="light"] .brand img.logo-on-dark { display: none; }
+:root[data-theme="light"] .brand img.logo-on-light { display: block; }
+
+.station-nav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+}
+.station-nav a {
+  color: var(--ink-faint);
+  text-decoration: none;
+  font-size: 0.88rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.station-nav a:hover { color: var(--ink); background: var(--panel-2); }
+.station-nav a[aria-current="page"] {
+  color: var(--ink);
+  background: var(--panel-2);
+  border-color: var(--rule);
+}
+.station-nav a:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 2px; }
+
+.theme-toggle {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  padding: 9px 16px;
+  min-height: 38px;
+}
+
+.panels { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
+@media (min-width: 980px) {
+  .panels.two { grid-template-columns: 1fr 1fr; }
+  .panels.wide-left { grid-template-columns: 1.35fr 1fr; }
+}
+
+.panel {
+  background: var(--wash), var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  box-shadow: var(--elevation);
+}
+.panel[hidden] { display: none; }
+
+.panel h2 {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.panel canvas { width: 100%; display: block; touch-action: manipulation; }
+
+/* ------------------------------------------------------------- readouts */
+
+.readout { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+
+.readout .value {
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: clamp(2.4rem, 6vw, 3.9rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+/* muted tints, not neon -- the pill beside it carries the actual verdict */
+.readout .value.good { color: var(--tint-good); }
+.readout .value.warn { color: var(--tint-warn); }
+.readout .value.bad  { color: var(--tint-bad); }
+
+.readout .caption {
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  max-width: 44ch;
+}
+
+.dual { display: flex; gap: 36px; flex-wrap: wrap; }
+.dual-item { display: flex; flex-direction: column; gap: 5px; }
+.dual-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+
+/* the dot is the only saturated thing here; the border stays neutral */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.84rem;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--wash), var(--panel-2);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ink-faint); flex: 0 0 auto;
+}
+.pill.good::before { background: var(--good); }
+.pill.warn::before { background: var(--marked); }
+.pill.bad::before  { background: var(--bad); }
+.pill.no-dot::before { display: none; }
+
+/* -------------------------------------------------------------- controls */
+
+.controls {
+  display: grid;
+  gap: 18px 26px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  background: var(--wash), var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--elevation);
+}
+
+.knob { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.knob[hidden] { display: none; }
+
+.knob .knob-label {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+}
+.knob .knob-name { font-weight: 500; font-size: 0.98rem; }
+.knob .knob-hint { color: var(--ink-faint); font-size: 0.85rem; }
+.knob .knob-hint.live { color: var(--ink-soft); }
+.knob .knob-hint.dead { color: var(--ink-faint); font-style: italic; }
+
+.knob .knob-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 40px;
+  background: transparent; margin: 0; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px; background: var(--panel-3);
+}
+input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 2px; background: var(--panel-3);
+}
+/* the thumb is a mark, so it may carry colour */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--marked); border: 3px solid var(--ground);
+  margin-top: -9px;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--marked); border: 3px solid var(--ground);
+}
+input[type="range"]:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 4px; }
+
+button {
+  font-family: var(--sans);
+  font-size: 0.92rem; font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--wash), var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 11px 19px; min-height: 44px; cursor: pointer;
+  transition: color .15s ease, background .15s ease;
+}
+button:hover { color: var(--ink); background: var(--panel-3); }
+button:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 3px; }
+button[hidden] { display: none; }
+button[aria-pressed="true"] {
+  color: var(--ink);
+  background: linear-gradient(158deg, rgba(159,140,240,.26), rgba(159,140,240,.08));
+  border-color: var(--marked-dim);
+}
+button.primary {
+  color: var(--ink);
+  background: linear-gradient(158deg, rgba(111,201,232,.20), rgba(159,140,240,.14));
+  border-color: var(--rule);
+}
+button.primary:hover { background: linear-gradient(158deg, rgba(111,201,232,.30), rgba(159,140,240,.20)); }
+button:disabled { opacity: .38; cursor: not-allowed; }
+
+.button-row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+
+/* ------------------------------------------------------- maths disclosure */
+
+details.maths {
+  background: var(--wash), var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--elevation);
+}
+details.maths > summary {
+  padding: 15px 20px; cursor: pointer; font-weight: 500;
+  color: var(--ink-soft); list-style: none;
+  display: flex; align-items: center; gap: 11px; min-height: 44px;
+}
+details.maths > summary::-webkit-details-marker { display: none; }
+details.maths > summary::before {
+  content: "+"; font-size: 1.05rem; color: var(--ink-faint); width: 16px;
+}
+details.maths[open] > summary::before { content: "\2212"; }
+details.maths > summary:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: -3px; }
+
+.maths-body {
+  padding: 0 24px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  color: var(--ink-soft); font-size: 0.97rem;
+}
+.maths-body p { margin: 0; max-width: 78ch; }
+.maths-body strong { color: var(--ink); font-weight: 600; }
+.maths-body em { color: var(--ink); font-style: italic; }
+
+.maths-head {
+  margin: 12px 0 0; color: var(--ink);
+  font-size: 1.05rem; font-weight: 500; letter-spacing: -0.01em;
+  padding-top: 18px; border-top: 1px solid var(--rule);
+}
+
+.warn-line { color: var(--ink-soft); }
+
+/* a derivation reads as one argument: indented, hairline rail, no colour */
+.derivation {
+  border-left: 1px solid var(--rule);
+  padding: 2px 0 2px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* Circuit diagrams, generated by PennyLane (assets/make_circuits.py).
+   Drawn black-on-white and shown on a white card: the gate boxes are filled,
+   which is what hides the wire behind them. Drawn transparent on the dark
+   panel, every wire ran straight through the middle of its own gate. */
+figure.circuit {
+  margin: 0;
+  background: var(--wash), var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--elevation);
+}
+
+.circuit-stage {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px;
+  line-height: 0;
+}
+.circuit-stage img { width: 100%; height: auto; display: block; }
+
+/* One hover target per gate, positioned from the generated hotspot table. */
+.circuit-hot {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: help;
+  transition: background .12s ease, border-color .12s ease;
+}
+.circuit-hot:hover,
+.circuit-hot.on,
+.circuit-hot:focus-visible {
+  background: rgba(159, 140, 240, 0.18);
+  border-color: var(--marked);
+  outline: none;
+}
+
+.circuit-tip {
+  margin: 0;
+  min-height: 3.1em;
+  max-width: 62ch;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.circuit-tip.live { color: var(--ink-soft); }
+
+figure.circuit figcaption {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  text-align: center;
+  max-width: 64ch;
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+}
+figure.circuit figcaption b { color: var(--ink-soft); font-weight: 600; }
+
+.cite {
+  font-size: 0.85rem; color: var(--ink-faint);
+  border-top: 1px solid var(--rule); padding-top: 14px; line-height: 1.6;
+}
+.cite b { color: var(--ink-soft); font-weight: 600; }
+
+.tablewrap { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+table.data th, table.data td {
+  padding: 8px 13px; text-align: left; border-bottom: 1px solid var(--rule-soft);
+}
+table.data th {
+  font-size: 0.7rem; letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; white-space: nowrap;
+}
+table.data td.num, table.data th.num {
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+table.data tr.highlight td { background: var(--panel-2); color: var(--ink); }
+
+/* --------------------------------------------------------------- footer */
+
+.station-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 14px; flex-wrap: wrap;
+  border-top: 1px solid var(--rule); padding-top: 15px;
+  color: var(--ink-faint); font-size: 0.85rem;
+}
+.station-foot a {
+  color: var(--ink-soft); text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+}
+.station-foot a:hover { color: var(--ink); }
+.station-foot a:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 3px; }
+
+.attract-note { color: var(--ink-faint); font-size: 0.82rem; }
+.attract-note[hidden] { display: none; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* =======================================================================
+   Maths -- native MathML from mathfmt.js, set in Computer Modern.
+   The browser does the layout; this only sets the face and the container.
+   ======================================================================= */
+
+math.mf {
+  font-family: var(--math);
+  color: var(--ink);
+  font-size: 1.06em;
+}
+
+/* The box lives on the wrapper and the maths is centred inside it.
+   `margin: 0 auto` on a flex item centres it AND still scrolls correctly when
+   the equation is wider than the panel -- justify-content: center would clip
+   the left-hand side of a long derivation instead. */
+.eq[data-display] {
+  display: flex;
+  margin: 2px 0;
+  padding: 18px 22px;
+  background: var(--wash), var(--panel-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--elevation);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.eq[data-display] > math.mf,
+.eq[data-display] > .mf-align { margin: 0 auto; }
+
+/* Aligned derivations.
+   Every cell is its own <math> placed on a CSS grid, so column boundaries are
+   exact and the relations line up down the block -- which is the whole point
+   of an aligned environment, and what MathML Core's mtable cannot give us
+   because it has no columnalign. */
+.mf-align {
+  display: grid;
+  justify-content: center;
+  align-items: baseline;
+  row-gap: 0.55em;
+  column-gap: 0;
+}
+.mf-align > math {
+  font-family: var(--math);
+  font-size: 1.2em;
+  color: var(--ink);
+}
+.mf-align > math.mf-al-r { justify-self: end; }
+.mf-align > math.mf-al-l { justify-self: start; }
+
+math.mf[display="block"] { display: block; font-size: 1.22em; }
+
+.eq { display: inline; }
+
+merror {
+  color: var(--bad);
+  font-family: var(--mono);
+  font-size: .82em;
+  border: none;
+  background: none;
+}
+
+/* Firefox needs a nudge to keep script sizes readable on a booth screen */
+math.mf msup > mrow:last-child,
+math.mf msub > mrow:last-child { font-size: .78em; }

@@ -1,0 +1,49 @@
+---
+/* /projects — Express · Convert. The filter row is real URL links, so it is
+   shareable and it works with JavaScript disabled. "Open to join" gets visual
+   priority because Convert is this page's job. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import FilterBar from '../../components/FilterBar.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import CTABand from '../../components/CTABand.astro';
+import { projects } from '../../lib/content';
+
+const all = await projects();
+const area = Astro.url.searchParams.get('area') ?? undefined;
+const status = Astro.url.searchParams.get('status') ?? undefined;
+
+const shown = all
+  .filter((p) => !area || p.data.area === area)
+  .filter((p) => !status || p.data.status === status);
+
+const areas = [...new Set(all.map((p) => p.data.area))].map((value) => ({
+  value, label: value, count: all.filter((p) => p.data.area === value).length,
+}));
+---
+<Base title="Projects" description="Student projects at QuEST@EEE — what each one is, who is on it, and which are open to new members.">
+  <PageHeader
+    eyebrow="Projects"
+    title="Work with a name on it and a deliverable at the end"
+    lede="Every entry says what the problem is, what a new member actually does, and who to write to. Projects that have finished stay here — this is the club's record of itself, not a shop window."
+  />
+  <section class="section-tight">
+    <div class="wrap">
+      <FilterBar base="/projects" param="area" current={area} options={areas} total={all.length} allLabel="All areas" />
+      {/* The cards are h3. Without this the outline jumps h1 -> h3, which a
+          screen reader reads as a missing level. */}
+      <h2 class="visually-hidden">{area ? `Projects in ${area}` : 'All projects'}</h2>
+      {shown.length ? (
+        <div class="grid grid-3">
+          {shown.map((project) => <ProjectCard project={project} />)}
+        </div>
+      ) : (
+        <EmptyState title="Nothing matches that filter" href="/projects" action="See every project">
+          <p>Try another area, or look at all of them.</p>
+        </EmptyState>
+      )}
+    </div>
+  </section>
+  <CTABand title="Want to start one?" href="/contact" action="Write to a Projects Lead" secondaryHref="/research" secondary="Or read how research works here" />
+</Base>

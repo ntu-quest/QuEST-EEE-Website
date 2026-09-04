@@ -1,0 +1,121 @@
+---
+/* /research — Express · Convert. The ladder, how an initiative actually runs,
+   and the current ones.
+
+   /research/outputs is deliberately NOT built: it opens once three real outputs
+   exist (BLUEPRINT §17). A page of headings with nothing under them is the
+   empty-shell failure the plan exists to avoid. */
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ObfuscatedMailto from '../components/ObfuscatedMailto.astro';
+import CTABand from '../components/CTABand.astro';
+import EmptyState from '../components/EmptyState.astro';
+import { projects } from '../lib/content';
+
+const initiatives = (await projects()).filter((p) => ['research', 'algorithms'].includes(p.data.area));
+
+const LADDER = [
+  { rung: 1, name: 'Curious', what: 'You have heard the word and nothing else.' },
+  { rung: 2, name: 'Learn', what: 'You come to a workshop or a guest lecture.' },
+  { rung: 3, name: 'Build', what: 'You push a slider, then you open the notebook.' },
+  { rung: 4, name: 'Project', what: 'You join a named project with a named deliverable.' },
+  { rung: 5, name: 'Research', what: 'Literature → implementation → analysis → output.' },
+  { rung: 6, name: 'Contribute', what: 'You run the workshop and mentor the next intake.' },
+];
+
+const PROCESS = [
+  { step: 'Problem', what: 'Write down what you are actually trying to answer, in one sentence, before anything else.' },
+  { step: 'Literature', what: 'Find out who has already answered it. Most of the value of a research project is discovering the shape of what is known.' },
+  { step: 'Implementation', what: 'Build the thing. This is the part everyone wants to start with and the part that goes fastest once the first two are done.' },
+  { step: 'Experiment', what: 'Run it properly — controls, repeats, and a record of what you changed.' },
+  { step: 'Analysis', what: 'Work out what the numbers mean, including when they mean the idea did not work.' },
+  { step: 'Output', what: 'A write-up, a talk, a notebook, a poster. Something that survives you graduating.' },
+];
+---
+<Base title="Research" description="How mentored research works at QuEST@EEE — the ladder, the process, and the current initiatives.">
+  <PageHeader
+    eyebrow="Research"
+    title="From curious to a result somebody else can use"
+    lede="Undergraduate research fails for one of two reasons: nobody says what the process is, or nobody checks in until the deadline. This is our answer to both."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      <h2 class="rule">The ladder</h2>
+      <p class="intro">
+        Six rungs. You can enter at any of them — somebody who already codes should never be made to
+        read the beginner page to reach a project.
+      </p>
+      <ol class="ladder">
+        {LADDER.map((rung) => (
+          <li>
+            <span class="rung mono">{rung.rung}</span>
+            <span class="name">{rung.name}</span>
+            <span class="what">{rung.what}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <h2 class="rule">How an initiative runs</h2>
+      <p class="intro">Weekly check-ins, monthly reports. Six stages, in this order.</p>
+      <ol class="process">
+        {PROCESS.map((stage, index) => (
+          <li>
+            <span class="n mono">{String(index + 1).padStart(2, '0')}</span>
+            <span class="detail"><strong>{stage.step}</strong><span>{stage.what}</span></span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <h2 class="rule">Current initiatives</h2>
+      {initiatives.length ? (
+        <div class="grid grid-3">{initiatives.map((project) => <ProjectCard project={project} />)}</div>
+      ) : (
+        <EmptyState title="Nothing running right now" href="/projects" action="See every project" />
+      )}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2 class="rule">Mentorship and URECA</h2>
+      <p class="intro">
+        The club's faculty advisors are <strong>Asst Prof Chang Jin</strong> and
+        <strong>A/P Wong Liang Jie</strong>. Members interested in taking a project into a URECA
+        or a final-year project should write to the President, who will route it — the club is not
+        a substitute for a supervisor, but it is a reasonable way to find one.
+      </p>
+      <p><ObfuscatedMailto user="TISORN001" label="Email the President" subject="QuEST@EEE — research and mentorship" /></p>
+    </div>
+  </section>
+
+  <CTABand title="Ready to take a rung?" href="/projects" action="Find a project" secondaryHref="/contact" secondary="Or ask a lead" />
+</Base>
+<style>
+  .rule { padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); margin-bottom: 1rem; }
+  .intro { color: var(--ink-soft); max-width: var(--measure); margin-bottom: 1.75rem; }
+  .ladder { list-style: none; margin: 0; padding: 0; }
+  .ladder li { display: grid; grid-template-columns: 3rem 10rem 1fr; gap: 1rem; align-items: baseline; padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+  .rung { font-size: var(--t-lead); font-weight: 500; color: var(--ink-faint); }
+  .name { font-family: var(--display); font-weight: 700; font-size: var(--t-small); }
+  .what { color: var(--ink-soft); font-size: var(--t-small); }
+  .process { list-style: none; margin: 0; padding: 0; }
+  .process li { display: flex; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+  .n { color: var(--ink-faint); font-size: var(--t-fine); padding-top: 0.25rem; flex: none; }
+  .detail { display: flex; flex-direction: column; gap: 0.2rem; }
+  .detail strong { font-family: var(--display); font-size: var(--t-small); }
+  .detail span { color: var(--ink-soft); font-size: var(--t-small); max-width: var(--measure); }
+  @media (max-width: 700px) {
+    .ladder li { grid-template-columns: 2.5rem 1fr; }
+    .what { grid-column: 2; }
+  }
+</style>

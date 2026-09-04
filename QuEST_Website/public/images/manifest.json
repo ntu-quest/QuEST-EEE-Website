@@ -1,0 +1,147 @@
+{
+  "acads_classroom.jpg": {
+    "width": 2000,
+    "height": 1125,
+    "base": "acads_classroom"
+  },
+  "acads_laptops.jpg": {
+    "width": 2000,
+    "height": 1125,
+    "base": "acads_laptops"
+  },
+  "acads_linear_independence.jpg": {
+    "width": 1477,
+    "height": 1108,
+    "base": "acads_linear_independence"
+  },
+  "acads_session_wide.jpg": {
+    "width": 2000,
+    "height": 1125,
+    "base": "acads_session_wide"
+  },
+  "acads_unitary_operator.jpg": {
+    "width": 1280,
+    "height": 960,
+    "base": "acads_unitary_operator"
+  },
+  "collab_workshop_board.jpg": {
+    "width": 1280,
+    "height": 853,
+    "base": "collab_workshop_board"
+  },
+  "fallfest_1.JPG": {
+    "width": 2000,
+    "height": 1333,
+    "base": "fallfest_1"
+  },
+  "fallfest_2.JPG": {
+    "width": 2000,
+    "height": 1333,
+    "base": "fallfest_2"
+  },
+  "fallfest_3.jpg": {
+    "width": 1280,
+    "height": 960,
+    "base": "fallfest_3"
+  },
+  "gia_lai_quantum_year.jpg": {
+    "width": 1108,
+    "height": 1477,
+    "base": "gia_lai_quantum_year"
+  },
+  "mile_gu.jpg": {
+    "width": 733,
+    "height": 733,
+    "base": "mile_gu"
+  },
+  "mlda_qcc_1.png": {
+    "width": 1772,
+    "height": 505,
+    "base": "mlda_qcc_1"
+  },
+  "mlda_qcc_2.png": {
+    "width": 465,
+    "height": 464,
+    "base": "mlda_qcc_2"
+  },
+  "ntuqcc.jpg": {
+    "width": 640,
+    "height": 640,
+    "base": "ntuqcc"
+  },
+  "pitch_stage.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "pitch_stage"
+  },
+  "poster_qcc_seminar.png": {
+    "width": 1414,
+    "height": 2000,
+    "base": "poster_qcc_seminar"
+  },
+  "poster_quantum_from_scratch.jpg": {
+    "width": 720,
+    "height": 1040,
+    "base": "poster_quantum_from_scratch"
+  },
+  "qid26_group.jpg": {
+    "width": 1477,
+    "height": 1108,
+    "base": "qid26_group"
+  },
+  "quantum_reservoir_pipeline.png": {
+    "width": 1726,
+    "height": 696,
+    "base": "quantum_reservoir_pipeline"
+  },
+  "quantum_x_philosophy.jpg": {
+    "width": 1108,
+    "height": 1477,
+    "base": "quantum_x_philosophy"
+  },
+  "quantum_x_philosophy_talk.jpg": {
+    "width": 1108,
+    "height": 1477,
+    "base": "quantum_x_philosophy_talk"
+  },
+  "quest_team_balcony.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "quest_team_balcony"
+  },
+  "quest_team_garden.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "quest_team_garden"
+  },
+  "quest_team_overhead.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "quest_team_overhead"
+  },
+  "quest_team_seated.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "quest_team_seated"
+  },
+  "quest_team_steps.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "quest_team_steps"
+  },
+  "workshop_bloch_sphere.jpg": {
+    "width": 608,
+    "height": 880,
+    "base": "workshop_bloch_sphere"
+  },
+  "workshop_image_2.jpeg": {
+    "width": 2000,
+    "height": 1333,
+    "base": "workshop_image_2"
+  },
+  "workshop_image_3.jpeg": {
+    "width": 1240,
+    "height": 788,
+    "base": "workshop_image_3"
+  }
+}

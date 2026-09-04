@@ -1,0 +1,185 @@
+/* ---------------------------------------------------------------------------
+ * QuEST@EEE — tokens.css
+ *
+ * The ONLY place a colour is defined. No hex literal may appear anywhere else
+ * in this codebase (CLAUDE.md non-negotiable #2).
+ *
+ * Every value is sampled from the ⟨Qu|EST@EEE⟩ mark: indigo 240°, violet
+ * 270–280°, ice cyan 180°. The neutrals carry a faint violet bias — they are
+ * chosen, not inherited. Do not replace them with pure greys.
+ *
+ * Three definitions per token, in this order (CLAUDE.md non-negotiable #3):
+ *   1. bare :root                                   — light, the default
+ *   2. @media (prefers-color-scheme: dark)          — guarded :root:not([data-theme="light"])
+ *   3. :root[data-theme="dark"]                     — the explicit toggle wins
+ *
+ * Token names follow QCC_qfest/booth/shared.css so the site and the offline
+ * booth build share one system, and Booth.css() — which reads custom
+ * properties off document.documentElement — resolves on both.
+ * ------------------------------------------------------------------------- */
+
+:root {
+  /* ---- ground and ink ---------------------------------------------------- */
+  --wash: #FAFAFC;       /* page ground */
+  --panel: #F1F0F7;      /* cards, table heads */
+  --panel-2: #E6E4F0;
+  --ink: #14131C;        /* violet-black */
+  --ink-soft: #3B3850;
+  --ink-faint: #5F5D75;  /* clears 4.5:1 on wash, panel, panel-2 AND panel-3 */
+  --rule: #DCDAE8;
+
+  /* ---- the two brand hues ------------------------------------------------ */
+  --accent: #4B3F94;     /* indigo — anything that NAVIGATES */
+  --accent-soft: #E7E4F6;
+  --ice: #1C7386;        /* ice — anything that RESPONDS: demos, the field */
+  --ice-soft: #DCEFF3;
+  --marked: #A8481F;     /* state only: open-to-join, deadline, warning */
+  --marked-soft: #F4E4DC;
+
+  /* Monogram tints — four faint washes from the brand hues only. `--marked`
+     is deliberately NOT among them: it carries state, and a person is not a
+     state. Assigned deterministically from the name in MonogramAvatar. */
+  --tile-1: #E7E4F6; --tile-1-ink: #4B3F94;   /* indigo  */
+  --tile-2: #DCEFF3; --tile-2-ink: #1C7386;   /* ice     */
+  --tile-3: #EDE6F4; --tile-3-ink: #6B3F94;   /* violet  */
+  --tile-4: #E6E4F0; --tile-4-ink: #4A4763;   /* neutral */
+
+  --radius: 4px;
+  --elevation: 0 1px 2px rgb(20 19 28 / .06);
+
+  /* The circuit SVGs are drawn black-on-white with FILLED gate boxes, and that
+     fill is what hides the wire running behind each gate. So the stage they sit
+     on stays white in both themes — this is the one token that is deliberately
+     not themed. Drawn on the dark panel instead, every wire ran straight
+     through the middle of its own gate. */
+  --circuit-stage: #FFFFFF;
+
+  /* ---- canvas marks -----------------------------------------------------
+   * Read by Booth.palette() on the demo pages. Saturated colour belongs to
+   * MARKS — bars, needles, arrows, slider thumbs, status dots — never to body
+   * text and never to the edge of a box. Themed like everything else.
+   * ---------------------------------------------------------------------- */
+  --rule-bright: #C4C0DA;  /* canvas strokes: axes, outlines, dial rings */
+  --rule-soft: #ECEAF4;
+  --panel-3: #DAD7E9;
+  --marked-dim: #D9CEF1;
+  --amp: #1C7386;
+  --amp-dim: #BEDDE4;
+  --negative: #B03A5B;
+  --good: #16755C;
+  --bad: #B03A5B;
+  --tint-good: #1D6553;
+  --tint-warn: #5A4A9B;
+  --tint-bad: #96334E;
+
+  /* ---- type ------------------------------------------------------------- */
+  --display: "Manrope", "Manrope Fallback", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --body: "Lora", "Lora Fallback", Georgia, "Times New Roman", Times, serif;
+  --mono: "DM Mono", "DM Mono Fallback", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* the booth canvases ask for these three names */
+  --sans: var(--display);
+  --math: "Lora", Georgia, "Times New Roman", serif;
+
+  /* One scale, no improvisation. 78 / 46 / 32 / 25 / 20 / 18 / 16 / 14 / 12.5 / 11 */
+  --t-display: 4.875rem;   /* 78 */
+  --t-title: 2.875rem;     /* 46 */
+  --t-head: 2rem;          /* 32 */
+  --t-sub: 1.5625rem;      /* 25 */
+  --t-lead: 1.25rem;       /* 20 */
+  --t-body: 1.125rem;      /* 18 */
+  --t-small: 1rem;         /* 16 */
+  --t-label: 0.875rem;     /* 14 */
+  --t-fine: 0.78125rem;    /* 12.5 */
+  --t-micro: 0.6875rem;    /* 11 — nothing below 12px is ever a visible face;
+                              this step is reserved for tracked uppercase
+                              labels, which measure larger than they compute */
+
+  /* ---- measure and rhythm ------------------------------------------------ */
+  --measure: 65ch;
+  --gap: 1.25rem;
+  --page: 76rem;
+  --page-wide: 92rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wash: #0C0B12;
+    --panel: #15141D;
+    --panel-2: #1E1C29;
+    --ink: #EDECF4;
+    --ink-soft: #C2BFD6;
+    --ink-faint: #918EA8;  /* same, measured on the dark grounds */
+    --rule: #2A2838;
+
+    --accent: #A79BEE;
+    --accent-soft: #221F38;
+    --ice: #6FC5D8;
+    --ice-soft: #152A31;
+    --marked: #E0906B;
+    --marked-soft: #2E1F18;
+
+    --tile-1: #221F38; --tile-1-ink: #A79BEE;
+    --tile-2: #152A31; --tile-2-ink: #6FC5D8;
+    --tile-3: #241C33; --tile-3-ink: #BFA3EE;
+    --tile-4: #1E1C29; --tile-4-ink: #A5A2BC;
+
+    --elevation: 0 1px 2px rgb(0 0 0 / .5);
+
+    --rule-bright: #3C3950;
+    --rule-soft: #201E2C;
+    --panel-3: #272437;
+    --marked-dim: #3A2F63;
+    --amp: #6FC5D8;
+    --amp-dim: #274456;
+    --negative: #E4809F;
+    --good: #56C9A4;
+    --bad: #E4809F;
+    --tint-good: #A9D6C6;
+    --tint-warn: #BDB2E4;
+    --tint-bad: #D9AFBC;
+  }
+}
+
+:root[data-theme="dark"] {
+  --wash: #0C0B12;
+  --panel: #15141D;
+  --panel-2: #1E1C29;
+  --ink: #EDECF4;
+  --ink-soft: #C2BFD6;
+  --ink-faint: #918EA8;  /* same, measured on the dark grounds */
+  --rule: #2A2838;
+
+  --accent: #A79BEE;
+  --accent-soft: #221F38;
+  --ice: #6FC5D8;
+  --ice-soft: #152A31;
+  --marked: #E0906B;
+  --marked-soft: #2E1F18;
+
+  --tile-1: #221F38; --tile-1-ink: #A79BEE;
+  --tile-2: #152A31; --tile-2-ink: #6FC5D8;
+  --tile-3: #241C33; --tile-3-ink: #BFA3EE;
+  --tile-4: #1E1C29; --tile-4-ink: #A5A2BC;
+
+  --elevation: 0 1px 2px rgb(0 0 0 / .5);
+
+  --rule-bright: #3C3950;
+  --rule-soft: #201E2C;
+  --panel-3: #272437;
+  --marked-dim: #3A2F63;
+  --amp: #6FC5D8;
+  --amp-dim: #274456;
+  --negative: #E4809F;
+  --good: #56C9A4;
+  --bad: #E4809F;
+  --tint-good: #A9D6C6;
+  --tint-warn: #BDB2E4;
+  --tint-bad: #D9AFBC;
+}
+
+/* The theme toggle sets data-theme; tell the UA so form controls,
+   scrollbars and the canvas backdrop follow. */
+:root { color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }

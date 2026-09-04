@@ -1,0 +1,53 @@
+---
+/* MonogramAvatar — the placeholder that is not a broken image.
+   Initials in Manrope, centred in exactly the box a photograph will occupy, so
+   the layout does not move when the portrait session happens. One code path:
+   an empty `photo` renders this automatically.
+
+   Tint, not colour-coding — four faint washes from the brand hues, assigned
+   deterministically from the name so a person keeps the same tile. The tile is
+   aria-hidden; the name is real text beside it. */
+interface Props { name: string; class?: string; }
+const { name, class: className } = Astro.props;
+
+const initials = name
+  .split(/\s+/)
+  .filter((part) => /[A-Za-z]/.test(part[0] ?? ''))
+  .slice(0, 2)
+  .map((part) => part[0]!.toUpperCase())
+  .join('');
+
+/* Deterministic and stable across rebuilds. FNV-1a rather than the usual
+   *31 sum, which clumps badly on a short list of names that mostly share a
+   first letter — three of the Top 4 landed on the same tint. */
+let hash = 0x811c9dc5;
+for (const char of name) {
+  hash ^= char.charCodeAt(0);
+  hash = Math.imul(hash, 0x01000193) >>> 0;
+}
+const tint = hash % 4;
+---
+
+<div class:list={['monogram', `tint-${tint}`, className]} aria-hidden="true">
+  <span>{initials || '·'}</span>
+</div>
+
+<style>
+  .monogram {
+    display: grid; place-items: center;
+    aspect-ratio: 1 / 1; width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--panel-2);
+    color: var(--ink-faint);
+  }
+  .monogram span {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    letter-spacing: -0.02em;
+  }
+  .tint-0 { background: var(--tile-1); color: var(--tile-1-ink); }
+  .tint-1 { background: var(--tile-2); color: var(--tile-2-ink); }
+  .tint-2 { background: var(--tile-3); color: var(--tile-3-ink); }
+  .tint-3 { background: var(--tile-4); color: var(--tile-4-ink); }
+</style>

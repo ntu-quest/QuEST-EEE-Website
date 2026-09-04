@@ -1,0 +1,40 @@
+---
+/* MotionFigure — the club's own generated physics animations, converted from
+   GIF to muted looping video. Illustration BESIDE the thing it illustrates,
+   never wallpaper: a Bloch sphere behind a paragraph about community is on the
+   club's own banned list.
+
+   Reduced motion gets the poster frame and a play control, not a disabled
+   feature — the still is a legitimate version of the figure. */
+interface Props { name: string; alt: string; caption?: string; class?: string; }
+const { name, alt, caption, class: className } = Astro.props;
+---
+<figure class:list={['figure motion', className]}>
+  <video
+    src={`/video/${name}.mp4`}
+    poster={`/video/${name}.png`}
+    autoplay muted loop playsinline preload="none"
+    aria-label={alt}
+  >
+    <source src={`/video/${name}.webm`} type="video/webm" />
+    <source src={`/video/${name}.mp4`} type="video/mp4" />
+    <img src={`/video/${name}.png`} alt={alt} />
+  </video>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<script>
+  /* autoplay is declared in the markup so the common case needs no JS at all;
+     this only takes it back off when the reader has asked for less motion. */
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const apply = () => {
+    document.querySelectorAll<HTMLVideoElement>('.motion video').forEach((video) => {
+      if (reduce.matches) { video.autoplay = false; video.controls = true; video.pause(); }
+      else { video.controls = false; video.play().catch(() => { video.controls = true; }); }
+    });
+  };
+  apply();
+  reduce.addEventListener('change', apply);
+</script>
+<style>
+  .motion video { width: 100%; height: auto; display: block; background: var(--panel-2); }
+</style>

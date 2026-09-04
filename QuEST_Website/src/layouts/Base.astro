@@ -1,0 +1,83 @@
+---
+/* Base layout. Every page in the site goes through here.
+
+   Fonts: Manrope (display) + Lora (body) + DM Mono (utility). Never Inter,
+   never Space Grotesk, never a bare system stack as a visible face. Variable
+   where available, display=swap, preconnected, Latin subset. */
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { SITE } from '../lib/site';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  /* Wide pages (demos, the stack) drop the reading measure. */
+  wide?: boolean;
+  bare?: boolean;
+  ogImage?: string;
+}
+const {
+  title, description = SITE.description, wide = false, bare = false,
+  ogImage = '/images/workshop_image_2.webp',
+} = Astro.props;
+
+const pageTitle = title === SITE.name ? `${SITE.name} — ${SITE.long}` : `${title} · ${SITE.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en-SG">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{pageTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  {/* The gradient mark cannot be a 32px favicon — "EST" dies well before that
+      size. Until a flat one-colour mark exists (BUILD_BRIEF §4.4) the tab uses
+      the bra-ket alone, drawn in the accent, which is the part of the mark that
+      survives. Never the retired QCC mark. */}
+  <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/brand/quest-logo-light.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&family=Lora:ital,wght@0,400..600;1,400..500&family=DM+Mono:wght@400;500&display=swap"
+  />
+
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <meta name="generator" content={Astro.generator} />
+
+  <script is:inline>
+    /* Applied before first paint so an explicit choice never flashes the other
+       theme. Everything below this line still works if it does not run: the
+       page simply follows the OS setting. */
+    try {
+      const saved = localStorage.getItem('quest-theme');
+      if (saved === 'dark' || saved === 'light') document.documentElement.dataset.theme = saved;
+    } catch (error) { /* private mode, or storage blocked */ }
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  {!bare && <SiteHeader />}
+  <main id="main" class={wide ? 'wide' : undefined}>
+    <slot />
+  </main>
+  {!bare && <SiteFooter />}
+</body>
+</html>

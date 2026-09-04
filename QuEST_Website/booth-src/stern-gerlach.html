@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stern&ndash;Gerlach &middot; QCC qfest booth</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<main class="station">
+
+  <div class="topbar">
+      <a class="brand" href="index.html">
+        <img class="logo-on-dark" src="quest-logo.png" alt="QuEST">
+        <img class="logo-on-light" src="quest-logo-light.png" alt="QuEST">
+      </a>
+      <nav class="station-nav" aria-label="Stations">
+        <a href="index.html">All stations</a>
+        <a href="grover.html">Search</a>
+        <a href="bell.html">Correlation</a>
+        <a href="stern-gerlach.html" aria-current="page">Measurement</a>
+        <a href="vqe-h2.html">Chemistry</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch between dark and light">Light</button>
+  </div>
+
+  <header class="station-head">
+    <div>
+      <p class="eyebrow">Station &middot; measurement</p>
+      <h1>The atoms you threw away come back</h1>
+      <p class="hook">Send silver atoms through a magnet and the beam splits in
+        two. Block one half. Now add a second magnet at right angles, and a
+        third &mdash; and the half you removed is back. 1922 apparatus, no
+        computer required.</p>
+    </div>
+    <div class="button-row">
+      <button id="reset" class="primary">Reset</button>
+    </div>
+  </header>
+
+  <div class="readout">
+    <div class="dual">
+      <div class="dual-item">
+        <span class="value good" id="final-split">100 / 0</span>
+        <span class="dual-label">up / down at the final magnet</span>
+      </div>
+      <div class="dual-item">
+        <span class="value" id="survival-value">50%</span>
+        <span class="dual-label">of the beam still flying</span>
+      </div>
+    </div>
+    <span class="caption" id="caption">
+      Two numbers, because the phase hides in one of them and not the other.
+    </span>
+    <span class="attract-note" id="attract-note" hidden>demo running &mdash; touch to take over</span>
+  </div>
+
+  <section class="panel">
+    <h2>The beam line</h2>
+    <canvas id="beam" data-height="330" role="img"
+            aria-label="Animated beam of atoms passing through up to three Stern-Gerlach magnets"></canvas>
+  </section>
+
+  <div class="controls">
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name">Magnet 1</span>
+        <span class="knob-value" id="m0-value">Z</span>
+      </div>
+      <div class="button-row">
+        <button id="m0-axis">Axis: Z</button>
+        <button id="m0-block">Block: down</button>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name">Magnet 2</span>
+        <span class="knob-value" id="m1-value">off</span>
+      </div>
+      <div class="button-row">
+        <button id="m1-axis">Axis: off</button>
+        <button id="m1-block">Block: down</button>
+      </div>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name">Final analyser</span>
+        <span class="knob-value" id="m2-value">Z</span>
+      </div>
+      <div class="button-row">
+        <button id="m2-axis">Axis: Z</button>
+      </div>
+      <span class="knob-hint">Blocks nothing &mdash; it just measures</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="phase">Input phase</label></span>
+        <span class="knob-value" id="phase-value">0&deg;</span>
+      </div>
+      <input type="range" id="phase" min="0" max="360" step="5" value="0">
+      <span class="knob-hint" id="phase-verdict">Invisible to a Z magnet. Not to X or Y.</span>
+    </div>
+  </div>
+
+  <div class="panels two">
+    <section class="panel">
+      <h2>Try these</h2>
+      <div class="button-row">
+        <button id="preset-zz">Z then Z</button>
+        <button id="preset-zx">Z then X</button>
+        <button id="preset-zxz">Z then X then Z</button>
+        <button id="preset-phase">Watch the phase</button>
+      </div>
+      <p style="color:var(--ink-soft);font-size:.92rem;margin:8px 0 0" id="preset-note">
+        Start with <strong>Z then Z</strong>: the beam stays where you put it.
+        Then add the X magnet in the middle and watch what it does to a
+        measurement you had already made.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>The same state on the Bloch sphere</h2>
+      <canvas id="bloch" data-height="230" role="img"
+              aria-label="Bloch sphere showing where the input state points"></canvas>
+    </section>
+  </div>
+
+
+  <details class="maths">
+    <summary>Show the maths</summary>
+    <div class="maths-body">
+      <p><strong>The measurement postulate.</strong> A magnet along <span class="eq" data-tex="\hat{n}"></span> measures the observable <span class="eq" data-tex="\sigma_n"></span>. Outcome <span class="eq" data-tex="m"></span> has projector <span class="eq" data-tex="P_m"></span>, and blocking a beam is that projection made physical:</p>
+      <div class="eq" data-tex="p(m) = \bra{\psi} P_m \ket{\psi} \qquad \ket{\psi'} = \frac{P_m \ket{\psi}}{\sqrt{p(m)}}" data-display></div>
+      <p><strong>The input state.</strong> The phase knob prepares</p>
+      <div class="eq" data-tex="\ket{\psi(\phi)} = \frac{1}{\sqrt{2}}\big(\ket{0} + e^{i\phi}\ket{1}\big)" data-display></div>
+      <p>Measured along <span class="eq" data-tex="z"></span>, the phase cancels when the amplitude is squared &mdash; for every <span class="eq" data-tex="\phi"></span>:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} p(z{=}{+}1) &amp;= \big|\braket{0}{\psi(\phi)}\big|^2 = \left|\frac{1}{\sqrt{2}}\right|^2 = \frac{1}{2} \\ p(z{=}{-}1) &amp;= \big|\braket{1}{\psi(\phi)}\big|^2 = \left|\frac{e^{i\phi}}{\sqrt{2}}\right|^2 = \frac{1}{2} \end{aligned}" data-display></div>
+      </div>
+      <p>Along <span class="eq" data-tex="x"></span> it survives, because the two amplitudes now <em>interfere</em> instead of being squared separately:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} \braket{+}{\psi(\phi)} &amp;= \frac{1}{\sqrt{2}}\big(\bra{0} + \bra{1}\big)\cdot\frac{1}{\sqrt{2}}\big(\ket{0} + e^{i\phi}\ket{1}\big) \\ &amp;= \frac{1 + e^{i\phi}}{2} \\[3pt] p(x{=}{+}1) &amp;= \left|\frac{1+e^{i\phi}}{2}\right|^2 = \cos^2\!\frac{\phi}{2} \end{aligned}" data-display></div>
+      </div>
+      <p>That <span class="eq" data-tex="\cos^2(\phi/2)"></span> is the number to watch. <strong>Where it appears depends on the magnets.</strong> If an <span class="eq" data-tex="X"></span> magnet is doing the filtering, it sets how many atoms survive; the survivors are all <span class="eq" data-tex="\ket{+}"></span>, so the final up/down split stays stubbornly 50/50. Turn the filtering off and the phase steers the split instead. The phase is never destroyed by an <span class="eq" data-tex="X"></span> magnet &mdash; it just moves into a different number.</p>
+      <p><strong>The three-magnet result.</strong> Filter <span class="eq" data-tex="z{=}{+}1"></span>, so the survivors are exactly <span class="eq" data-tex="\ket{0}"></span>. Rewrite that in the <span class="eq" data-tex="x"></span> basis, filter again, and rewrite back:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} \ket{0} &amp;= \frac{1}{\sqrt{2}}\big(\ket{+} + \ket{-}\big) &amp;&amp; \Rightarrow\ p(x{=}{+}1) = \tfrac{1}{2} \\[3pt] \ket{+} &amp;= \frac{1}{\sqrt{2}}\big(\ket{0} + \ket{1}\big) &amp;&amp; \Rightarrow\ p(z{=}{-}1) = \tfrac{1}{2} \end{aligned}" data-display></div>
+      </div>
+      <p>Half the atoms leave <strong>down</strong> &mdash; the very outcome physically removed at magnet one. Nothing put the spin back. Asking the <span class="eq" data-tex="x"></span> question destroyed the answer to the <span class="eq" data-tex="z"></span> question, because the two observables do not commute:</p>
+      <div class="eq" data-tex="[\sigma_x, \sigma_z] = \sigma_x\sigma_z - \sigma_z\sigma_x = -2i\,\sigma_y \neq 0" data-display></div>
+      <p>Non-commuting observables have no common eigenstates, so no state has a definite value of both. This is not a limitation of the apparatus.</p>
+      <figure class="circuit" data-circuit="stern-gerlach">
+        <div class="circuit-stage"><img src="circuits/stern-gerlach.svg" alt="Stern-Gerlach circuit: prepare, measure, Hadamard, measure, Hadamard, measure"></div>
+        <p class="circuit-tip">Hover or tap any gate to see what it does.</p>
+        <figcaption>Z &rarr; X &rarr; Z. Each <b>mid-circuit measurement</b> with postselection is a magnet with a beam stop; the Hadamards rotate the x basis onto the z basis so the middle magnet can be a computational-basis measurement.</figcaption>
+      </figure>
+      <div class="cite">
+        <b>Gerlach &amp; Stern</b>, Z. Phys. 9 (1922) 349 &middot;
+        <b>Sakurai &amp; Napolitano</b>, <em>Modern Quantum Mechanics</em> &sect;1.1
+        &mdash; the sequential argument above &middot;
+        <b>Feynman Lectures</b> vol. III ch. 5.
+        Live version of act10 Part 3; values asserted in
+        <code>verify/test_reference.py</code>.
+      </div>
+    </div>
+  </details>
+
+  <footer class="station-foot">
+    <span>QCC qfest &middot; station 3 of 4</span>
+    <span><a href="index.html">All stations</a></span>
+  </footer>
+</main>
+
+<script src="data/constants.js"></script>
+<script src="physics.js"></script>
+<script src="mathfmt.js"></script>
+<script src="circuits/hotspots.js"></script>
+<script src="shared.js"></script>
+<script>
+(function () {
+  "use strict";
+  Booth.requireConstants();
+  Booth.initTheme();
+  if (!window.Physics) throw new Error("booth/physics.js did not load");
+
+  var SG = Physics.sg;
+  var C = Booth.palette({
+    ink: "--ink", inkSoft: "--ink-soft",
+    inkFaint: "--ink-faint", rule: "--rule",
+    ruleBright: "--rule-bright", marked: "--marked",
+    amp: "--amp", good: "--good", bad: "--bad",
+    panel2: "--panel-2"
+  });
+
+  var AXES = ["off", "Z", "X", "Y"];
+
+  var state = {
+    magnets: [
+      { axis: "Z", blocked: -1 },
+      { axis: "off", blocked: -1 },
+      { axis: "Z", blocked: null }    // final analyser never blocks
+    ],
+    phaseDeg: 0,
+    atoms: []
+  };
+
+  function inputState() { return SG.phaseState(state.phaseDeg * Math.PI / 180); }
+
+  /* Only the magnets that are switched on, in beam order. */
+  function activeStages() {
+    return state.magnets
+      .filter(function (m) { return m.axis !== "off"; })
+      .map(function (m) { return { axis: m.axis, blocked: m.blocked }; });
+  }
+
+  function result() {
+    var stages = activeStages();
+    if (stages.length === 0) {
+      return { surviving: 1, final: { 1: 0.5, "-1": 0.5 } };
+    }
+    return SG.sequence(inputState(), stages);
+  }
+
+  // ------------------------------------------------------------ beam line
+  var beamCanvas = document.getElementById("beam");
+
+  /* Each atom carries its own quantum state down the line, so what happens to
+     it at each magnet is a real measurement, not a scripted animation. */
+  function spawnAtom() {
+    return { x: 0, y: 0, targetY: 0, state: inputState(), stage: 0, dead: false, age: 0 };
+  }
+
+  function magnetPositions(width) {
+    var slots = [];
+    var active = state.magnets.map(function (m, i) { return { m: m, i: i }; })
+                              .filter(function (entry) { return entry.m.axis !== "off"; });
+    for (var k = 0; k < active.length; k++) {
+      slots.push({
+        x: width * (0.26 + 0.24 * k),
+        magnet: active[k].m,
+        isLast: k === active.length - 1
+      });
+    }
+    return slots;
+  }
+
+  var beam = Booth.canvas(beamCanvas, function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var midY = h * 0.5;
+    var slots = magnetPositions(w);
+
+    // source
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "13px " + Booth.css("--sans");
+    ctx.textAlign = "left";
+    ctx.fillText("oven", 6, midY - 24);
+    ctx.fillStyle = C.ruleBright;
+    ctx.fillRect(0, midY - 12, 16, 24);
+
+    // magnets
+    slots.forEach(function (slot) {
+      var magnet = slot.magnet;
+      ctx.fillStyle = C.panel2;
+      ctx.strokeStyle = C.ruleBright;
+      ctx.lineWidth = 2;
+      ctx.fillRect(slot.x - 26, midY - 54, 52, 108);
+      ctx.strokeRect(slot.x - 26, midY - 54, 52, 108);
+
+      ctx.fillStyle = C.marked;
+      ctx.font = "700 22px " + Booth.css("--sans");
+      ctx.textAlign = "center";
+      ctx.fillText(magnet.axis, slot.x, midY + 8);
+      ctx.fillStyle = C.inkFaint;
+      ctx.font = "11px " + Booth.css("--sans");
+      ctx.fillText("SG-" + magnet.axis, slot.x, midY + 70);
+
+      // beam stop, drawn as a solid plate so blocking is visibly physical
+      if (magnet.blocked !== null && magnet.blocked !== undefined) {
+        var stopY = magnet.blocked > 0 ? midY - 46 : midY + 34;
+        ctx.fillStyle = C.bad;
+        ctx.fillRect(slot.x + 30, stopY, 10, 12);
+        ctx.fillStyle = C.bad;
+        ctx.font = "10px " + Booth.css("--sans");
+        ctx.textAlign = "left";
+        ctx.fillText("blocked", slot.x + 44, stopY + 10);
+      }
+    });
+
+    // detector screen
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(w - 8, midY - 70); ctx.lineTo(w - 8, midY + 70);
+    ctx.stroke();
+
+    var outcome = result();
+    ctx.fillStyle = C.good;
+    ctx.font = "600 13px " + Booth.css("--sans");
+    ctx.textAlign = "right";
+    ctx.fillText("up " + Math.round(outcome.final[1] * 100) + "%", w - 16, midY - 46);
+    ctx.fillText("down " + Math.round(outcome.final["-1"] * 100) + "%", w - 16, midY + 56);
+
+    // atoms
+    state.atoms.forEach(function (atom) {
+      ctx.globalAlpha = atom.dead ? 0.35 : 1;
+      ctx.fillStyle = atom.dead ? C.bad : (atom.targetY < 0 ? C.amp : C.marked);
+      ctx.beginPath();
+      ctx.arc(atom.x, midY + atom.y, atom.dead ? 3 : 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+  });
+
+  /* Advance every atom, measuring at each magnet it reaches. */
+  function stepAtoms(width) {
+    var slots = magnetPositions(width);
+    var speed = width / 220;
+
+    state.atoms.forEach(function (atom) {
+      atom.age++;
+      if (atom.dead) { atom.y += 0.6; return; }
+      atom.x += speed;
+      atom.y += (atom.targetY - atom.y) * 0.12;
+
+      var slot = slots[atom.stage];
+      if (slot && atom.x >= slot.x) {
+        var magnet = slot.magnet;
+        var outcomes = SG.measure(atom.state, magnet.axis);
+        var up = outcomes[1].probability;
+        var got = Math.random() < up ? 1 : -1;
+        if (!outcomes[got].state) got = -got;
+        atom.state = outcomes[got].state;
+        atom.targetY = got > 0 ? -34 : 34;
+        if (magnet.blocked !== null && magnet.blocked !== undefined && got === magnet.blocked) {
+          atom.dead = true;
+        }
+        atom.stage++;
+      }
+    });
+
+    state.atoms = state.atoms.filter(function (atom) {
+      return atom.x < width + 20 && atom.age < 900;
+    });
+  }
+
+  var lastSpawn = 0;
+  function animateBeam(now) {
+    if (now - lastSpawn > 70) {
+      lastSpawn = now;
+      if (state.atoms.length < 90) state.atoms.push(spawnAtom());
+    }
+    stepAtoms(beam.width || beamCanvas.getBoundingClientRect().width || 800);
+    beam.repaint();
+    window.requestAnimationFrame(animateBeam);
+  }
+
+  // ----------------------------------------------------------- bloch view
+  var bloch = Booth.canvas(document.getElementById("bloch"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var cx = w / 2, cy = h / 2, radius = Math.min(w, h) * 0.36;
+
+    ctx.strokeStyle = C.ruleBright;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
+    ctx.save();
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.ellipse(cx, cy, radius, radius * 0.32, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    ctx.strokeStyle = C.rule;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - radius - 12); ctx.lineTo(cx, cy + radius + 12);
+    ctx.moveTo(cx - radius - 12, cy); ctx.lineTo(cx + radius + 12, cy);
+    ctx.stroke();
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    ctx.fillText("|0⟩", cx, cy - radius - 18);
+    ctx.fillText("|1⟩", cx, cy + radius + 26);
+    ctx.textAlign = "left";
+    ctx.fillText("|+⟩", cx + radius + 16, cy + 4);
+
+    var vector = SG.blochVector(inputState());
+    // x to the right, y into the page (foreshortened), z up
+    var px = cx + radius * (vector.x + 0.36 * vector.y);
+    var py = cy - radius * (vector.z - 0.18 * vector.y);
+    ctx.strokeStyle = C.marked;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+    ctx.fillStyle = C.marked;
+    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // -------------------------------------------------------------- refresh
+  function label(index) {
+    var magnet = state.magnets[index];
+    if (magnet.axis === "off") return "off";
+    if (magnet.blocked === null || magnet.blocked === undefined) return magnet.axis;
+    return magnet.axis + ", block " + (magnet.blocked > 0 ? "up" : "down");
+  }
+
+  /* Where does the input phase actually show up in this configuration?
+     Sampled from the real physics rather than hard-coded, because the answer
+     depends on the whole magnet chain.  This is the fix for the knob that
+     looked broken: once anything filters, phi stops moving the up/down split
+     and moves the surviving intensity instead. */
+  function phaseSensitivity() {
+    var stages = activeStages();
+    var splits = [], survivals = [];
+    for (var deg = 0; deg < 360; deg += 30) {
+      var probe = SG.phaseState(deg * Math.PI / 180);
+      var out = stages.length
+        ? SG.sequence(probe, stages)
+        : { surviving: 1, final: { 1: 0.5, "-1": 0.5 } };
+      survivals.push(Math.round(out.surviving * 1000));
+      splits.push(out.surviving < 1e-9 ? null : Math.round(out.final[1] * 1000));
+    }
+    var uniq = function (list) {
+      var seen = {};
+      list.forEach(function (v) { if (v !== null) seen[v] = 1; });
+      return Object.keys(seen).length;
+    };
+    return { movesSplit: uniq(splits) > 1, movesSurvival: uniq(survivals) > 1 };
+  }
+
+  function refresh() {
+    var outcome = result();
+    var blocked = outcome.surviving < 1e-9;
+    var up = Math.round(outcome.final[1] * 100);
+
+    var splitEl = document.getElementById("final-split");
+    splitEl.textContent = blocked ? "—" : up + " / " + (100 - up);
+    splitEl.className = "value " + (blocked ? "bad" : "good");
+
+    var survivalEl = document.getElementById("survival-value");
+    survivalEl.textContent = (outcome.surviving * 100).toFixed(
+      outcome.surviving > 0 && outcome.surviving < 0.1 ? 1 : 0) + "%";
+    survivalEl.className = "value " + (blocked ? "bad"
+      : outcome.surviving < 0.3 ? "warn" : "good");
+
+    var sensitivity = phaseSensitivity();
+    var verdict = document.getElementById("phase-verdict");
+    if (sensitivity.movesSplit && sensitivity.movesSurvival) {
+      verdict.textContent = "φ is moving both numbers here.";
+      verdict.className = "knob-hint live";
+    } else if (sensitivity.movesSplit) {
+      verdict.textContent = "φ is steering the up/down split — turn it and watch.";
+      verdict.className = "knob-hint live";
+    } else if (sensitivity.movesSurvival) {
+      verdict.textContent = "φ does not touch the split — it sets how many atoms "
+        + "survive. Watch the second number.";
+      verdict.className = "knob-hint live";
+    } else {
+      verdict.textContent = "φ does nothing here: a Z magnet measured first and "
+        + "erased it. Switch magnet 1 off, or to X, to make it matter.";
+      verdict.className = "knob-hint dead";
+    }
+
+    var stages = activeStages();
+    var caption = document.getElementById("caption");
+    var blocking = stages.filter(function (s) { return s.blocked !== null; });
+    if (blocked) {
+      caption.textContent = "Every atom is blocked. The input is exactly the state "
+        + "this magnet rejects, so nothing reaches the far end at all.";
+    } else if (stages.length >= 3 && up === 50 && blocking.length >= 2) {
+      caption.textContent = "You blocked the down beam at magnet one. Half the "
+        + "atoms are coming out down anyway. The middle magnet erased it.";
+    } else if (up === 100) {
+      caption.textContent = "Every surviving atom leaves the same way it was "
+        + "filtered. Measuring the same thing twice changes nothing.";
+    } else {
+      caption.textContent = "Two numbers, because the phase hides in one of them "
+        + "and not the other.";
+    }
+
+    for (var i = 0; i < 3; i++) {
+      document.getElementById("m" + i + "-value").textContent = label(i);
+      var axisButton = document.getElementById("m" + i + "-axis");
+      if (axisButton) axisButton.textContent = "Axis: " + state.magnets[i].axis;
+      var blockButton = document.getElementById("m" + i + "-block");
+      if (blockButton) {
+        blockButton.textContent = "Block: " + (state.magnets[i].blocked > 0 ? "up" : "down");
+        blockButton.disabled = state.magnets[i].axis === "off";
+      }
+    }
+
+    state.atoms = [];
+    bloch.repaint();
+    beam.repaint();
+  }
+
+  // ---------------------------------------------------------------- knobs
+  [0, 1].forEach(function (index) {
+    document.getElementById("m" + index + "-axis").addEventListener("click", function () {
+      var magnet = state.magnets[index];
+      magnet.axis = AXES[(AXES.indexOf(magnet.axis) + 1) % AXES.length];
+      refresh();
+    });
+    document.getElementById("m" + index + "-block").addEventListener("click", function () {
+      var magnet = state.magnets[index];
+      magnet.blocked = magnet.blocked > 0 ? -1 : 1;
+      refresh();
+    });
+  });
+
+  document.getElementById("m2-axis").addEventListener("click", function () {
+    var magnet = state.magnets[2];
+    var options = ["Z", "X", "Y"];
+    magnet.axis = options[(options.indexOf(magnet.axis) + 1) % options.length];
+    refresh();
+  });
+
+  var phaseKnob = Booth.knob("phase", function (value) {
+    state.phaseDeg = value;
+    refresh();
+  }, function (value) { return Math.round(value) + "°"; });
+
+  function preset(magnets, note) {
+    state.magnets = magnets;
+    document.getElementById("preset-note").innerHTML = note;
+    refresh();
+  }
+
+  document.getElementById("preset-zz").addEventListener("click", function () {
+    preset([{ axis: "Z", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "Z", blocked: null }],
+      "Measure Z, block the down beam, measure Z again. Everything that survives "
+      + "comes out <strong>up</strong>. The collapse sticks.");
+  });
+  document.getElementById("preset-zx").addEventListener("click", function () {
+    preset([{ axis: "Z", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "X", blocked: null }],
+      "Same start, but ask a different question at the end. A definite Z answer "
+      + "carries <strong>no information at all</strong> about X — a clean 50/50.");
+  });
+  document.getElementById("preset-zxz").addEventListener("click", function () {
+    preset([{ axis: "Z", blocked: -1 }, { axis: "X", blocked: -1 }, { axis: "Z", blocked: null }],
+      "Now the punchline. The down beam was physically stopped at magnet one, yet "
+      + "<strong>half the atoms leave down</strong>. Measuring X erased the Z answer.");
+  });
+
+  document.getElementById("preset-phase").addEventListener("click", function () {
+    preset([{ axis: "off", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "X", blocked: null }],
+      "No filtering at all — just an X analyser. Now turn the phase knob: the "
+      + "split sweeps <strong>100/0 → 50/50 → 0/100</strong>. The phase was always "
+      + "there; it only shows up when you ask the right question.");
+    phaseKnob.set(0, true);
+    state.phaseDeg = 0;
+    document.getElementById("phase-value").textContent = "0°";
+    refresh();
+  });
+
+  Booth.reset("reset", function () {
+    state.magnets = [{ axis: "Z", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "Z", blocked: null }];
+    state.phaseDeg = 0;
+    phaseKnob.set(0, true);
+    document.getElementById("phase-value").textContent = "0°";
+    refresh();
+  });
+
+  Booth.attract({
+    idleMs: 45000, periodMs: 12000,
+    note: document.getElementById("attract-note"),
+    onFrame: function (phase) {
+      // cycle through the three classic configurations
+      var which = Math.floor(phase * 3) % 3;
+      var wanted = [
+        [{ axis: "Z", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "Z", blocked: null }],
+        [{ axis: "Z", blocked: -1 }, { axis: "off", blocked: -1 }, { axis: "X", blocked: null }],
+        [{ axis: "Z", blocked: -1 }, { axis: "X", blocked: -1 }, { axis: "Z", blocked: null }]
+      ][which];
+      if (state.magnets[1].axis !== wanted[1].axis || state.magnets[2].axis !== wanted[2].axis) {
+        state.magnets = wanted;
+        refresh();
+      }
+    }
+  });
+
+  MathFmt.install(document);
+  Booth.circuits(document);
+
+  refresh();
+  window.requestAnimationFrame(animateBeam);
+})();
+</script>
+</body>
+</html>

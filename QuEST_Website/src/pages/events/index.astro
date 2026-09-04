@@ -1,0 +1,75 @@
+---
+/* /events — Inform · Capture · Convert. Upcoming first, then a photo-led past
+   gallery. An "upcoming" block with last semester's date does more damage than
+   having no site, so upcoming means dated in the future AND marked upcoming. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import EventCard from '../../components/EventCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import CTABand from '../../components/CTABand.astro';
+import { upcomingEvents, pastEvents } from '../../lib/content';
+
+const upcoming = await upcomingEvents();
+const past = await pastEvents();
+
+const SERIES = [
+  {
+    title: 'Quantum Questions',
+    what: 'A guest-lecture series that takes one question the field has not settled and gives it two hours and an argument. Run with the Singapore Youth Quantum Collective.',
+  },
+  {
+    title: 'Foundations',
+    what: 'The workshop track. Semester 1 builds the groundwork — linear algebra, probability, states and gates; semester 2 goes to algorithms and quantum machine learning.',
+  },
+];
+---
+<Base title="Events" description="Workshops, guest lectures and showcases run by QuEST@EEE.">
+  <PageHeader
+    eyebrow="Events"
+    title="What's on, and what has been"
+    lede="Two named series plus everything else. Past events stay here with their photographs — the archive is the strongest proof the club has."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      <h2 class="rule">Upcoming</h2>
+      {upcoming.length ? (
+        <div class="grid grid-2">{upcoming.map((event) => <EventCard event={event} />)}</div>
+      ) : (
+        <EmptyState title="Nothing on the calendar right now" href="https://t.me/+F4ofanIj4lJmNmY1" action="Join the Telegram group">
+          <p>The next session is announced in the group before it is announced anywhere else.</p>
+        </EmptyState>
+      )}
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <h2 class="rule">The two series</h2>
+      <div class="grid grid-2">
+        {SERIES.map((series) => (
+          <article class="card">
+            <h3>{series.title}</h3>
+            <p>{series.what}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2 class="rule">What has been</h2>
+      {past.length ? (
+        <div class="grid grid-3">{past.map((event) => <EventCard event={event} />)}</div>
+      ) : (
+        <EmptyState title="The archive starts here"><p>Past events appear as they are written up.</p></EmptyState>
+      )}
+    </div>
+  </section>
+
+  <CTABand title="Hear about the next one first" href="https://t.me/+F4ofanIj4lJmNmY1" action="Join the group" secondaryHref="/join" secondary="Or join the club properly" />
+</Base>
+<style>
+  .rule { padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); margin-bottom: 1.75rem; }
+</style>

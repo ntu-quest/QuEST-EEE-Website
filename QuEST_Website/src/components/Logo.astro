@@ -1,0 +1,50 @@
+---
+/* THE FILENAME TRAP — read twice.
+ * The two files are named by MODE, not by ink:
+ *   quest-logo-light.png = the LIGHT-MODE artwork, drawn dark violet. Use on LIGHT grounds.
+ *   quest-logo-dark.png  = the DARK-MODE artwork, drawn pale ice.     Use on DARK grounds.
+ * Swap them and both marks lose contrast — the pale "EST" washes out on paper,
+ * and the deep-violet "Qu" disappears into ink.
+ *
+ * <picture> alone cannot let an explicit [data-theme] toggle beat the OS
+ * setting in BOTH directions, so this renders two <img> elements and lets CSS
+ * decide — the same three-step pattern as tokens.css, and no JavaScript.
+ *
+ * Both files are padded to one shared 1114×624 canvas by make_logos.py, so a
+ * fixed height renders an identical mark either way. Never re-export one file
+ * on its own — regenerate both through that script.
+ *
+ * Never render the gradient mark below 96px: "EST" is its weakest element and
+ * dies first. Nav sizes use the wordmark set in Manrope instead. */
+interface Props { height?: number; class?: string; alt?: string; }
+const { height = 180, class: className, alt = 'QuEST@EEE' } = Astro.props;
+const width = Math.round((1114 / 624) * height);
+---
+
+<span class:list={['logo', className]} style={`--logo-h:${height}px`}>
+  <img class="logo-on-light" src="/brand/quest-logo-light.png" alt={alt}
+       width={width} height={height} decoding="async" />
+  <img class="logo-on-dark" src="/brand/quest-logo-dark.png" alt=""
+       width={width} height={height} decoding="async" aria-hidden="true" />
+</span>
+
+<style>
+  .logo { display: inline-block; line-height: 0; }
+  .logo img { height: var(--logo-h); width: auto; }
+
+  /* 1 — light is the default */
+  .logo .logo-on-dark { display: none; }
+  .logo .logo-on-light { display: block; }
+
+  /* 2 — the OS preference, guarded so an explicit light toggle still wins */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .logo .logo-on-dark { display: block; }
+    :global(:root:not([data-theme='light'])) .logo .logo-on-light { display: none; }
+  }
+
+  /* 3 — the explicit toggle beats the OS setting in both directions */
+  :global(:root[data-theme='dark']) .logo .logo-on-dark { display: block; }
+  :global(:root[data-theme='dark']) .logo .logo-on-light { display: none; }
+  :global(:root[data-theme='light']) .logo .logo-on-dark { display: none; }
+  :global(:root[data-theme='light']) .logo .logo-on-light { display: block; }
+</style>

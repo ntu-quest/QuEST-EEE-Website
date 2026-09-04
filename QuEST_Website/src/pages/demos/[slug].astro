@@ -1,0 +1,275 @@
+---
+/* DemoShell + DemoOutline + ControlDock — BLUEPRINT §07.
+ *
+ * The maths is flattened out of <details> and into the page in document order,
+ * with an outline rail generated from the article's OWN headings so it cannot
+ * drift from the content.
+ *
+ * THE ONE THING TO GET RIGHT: the controls are pinned. Flattening the
+ * derivation makes the page four screens long, and a reader mid-derivation has
+ * otherwise scrolled the knobs away — at which point the plot stops answering
+ * and this is a textbook with a picture in it. The dock stays on screen the
+ * whole way down.
+ *
+ * Deep-linkable state: /demos/grover?n=4&steps=9&marked=6
+ * Booth mode: ?kiosk=1 hides the chrome and enlarges the type. */
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import MotionFigure from '../../components/MotionFigure.astro';
+import { demos } from '../../lib/content';
+import blocks from '../../generated/demos.json';
+import '../../styles/demo.css';
+
+export const getStaticPaths = (async () => {
+  const all = await demos();
+  return all.map((demo) => ({ params: { slug: demo.id }, props: { demo } }));
+}) satisfies GetStaticPaths;
+
+const { demo } = Astro.props;
+const d = demo.data;
+const block = (blocks as Record<string, {
+  actions: string; readout: string; panels: string[]; controls: string; maths: string;
+}>)[demo.id];
+
+const all = await demos();
+const index = all.findIndex((x) => x.id === demo.id);
+const next = all[(index + 1) % all.length];
+
+/* The canonical section shape, identical for all four stations. The rail is
+   built from this list and the ids are the anchor targets, so a heading and
+   its rail entry cannot disagree. */
+const SECTIONS = [
+  { id: 'hook', label: 'The hook' },
+  { id: 'readout', label: 'What it says' },
+  { id: 'canvas', label: 'The picture' },
+  { id: 'whole', label: 'The whole picture' },
+  { id: 'controls', label: 'Controls' },
+  { id: 'maths', label: 'The maths' },
+  { id: 'references', label: 'References' },
+  { id: 'further', label: 'Take it further' },
+].filter((section) => {
+  if (section.id === 'whole') return block.panels.length > 1;
+  return true;
+});
+---
+
+<Base title={d.title} description={d.hook} wide>
+  <div class="demo demo-page" data-slug={demo.id}>
+    <div class="wrap-wide layout">
+      <!-- The outline rail. Generated from the section list the article is
+           built from; scroll-spy marks the one you are in. Below 900px it
+           becomes a sticky chip strip across the top. -->
+      <nav class="rail" aria-label="On this page">
+        <p class="eyebrow">Station {d.station}</p>
+        <ol>
+          {SECTIONS.map((section) => (
+            <li><a href={`#${section.id}`} data-rail={section.id}>{section.label}</a></li>
+          ))}
+        </ol>
+        <p class="rail-foot">
+          <a class="text-link" href="/demos">All four stations →</a>
+        </p>
+      </nav>
+
+      <article class="article">
+        <header id="hook" class="hook">
+          <p class="eyebrow">Station {d.station} · {d.concept}</p>
+          <h1>{d.title}</h1>
+          <p class="lede">{d.hook}</p>
+          <div class="intro" set:html={block.actions} />
+        </header>
+
+        <section id="readout" aria-label="Live readout">
+          <div set:html={block.readout} />
+        </section>
+
+        <section id="canvas" aria-label="The picture">
+          <Fragment set:html={block.panels[0]} />
+        </section>
+
+        {block.panels.length > 1 && (
+          <section id="whole" aria-label="The whole picture">
+            {block.panels.slice(1).map((panel) => <Fragment set:html={panel} />)}
+          </section>
+        )}
+
+        <section id="controls" class="controls-anchor" aria-label="Controls">
+          <h2 class="section-rule">Controls</h2>
+          <p class="note">
+            The knob panel stays at the bottom of your screen all the way down this page, so the
+            plot keeps answering while you read.
+          </p>
+        </section>
+
+        <section id="maths" class="maths-section">
+          <h2 class="section-rule">The maths</h2>
+          <div class="maths-body" set:html={block.maths} />
+        </section>
+
+        {d.references.length > 0 && (
+          <section id="references">
+            <h2 class="section-rule">References</h2>
+            <ul class="refs">
+              {d.references.map((reference) => (
+                <li>
+                  {reference.url
+                    ? <a href={reference.url}>{reference.citation}</a>
+                    : reference.citation}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section id="further">
+          <h2 class="section-rule">Take it further</h2>
+          {d.motionFigure && (
+            <MotionFigure
+              name={d.motionFigure}
+              alt={`Animation illustrating ${d.title}`}
+              caption={`Generated by the club's own make_gifs.py — the same physics as the station above.`}
+              class="further-figure"
+            />
+          )}
+          <ul class="further">
+            <li><a href={`/demos/${next.id}`}>Next station — {next.data.title}</a> · {next.data.hook}</li>
+            <li><a href="/demos#offline">Download the offline bundle</a> · all four stations, no network needed</li>
+            <li><a href="/explore/resources">Resources</a> · where to read more, in order</li>
+            {d.stackNodes.map((node) => (
+              <li><a href={`/explore/quantum-stack#${node}`}>Where this sits in the Quantum Stack</a></li>
+            ))}
+          </ul>
+        </section>
+
+        <div class="dock-spacer" aria-hidden="true"></div>
+      </article>
+    </div>
+
+    <!-- ControlDock. Fixed to the bottom of the viewport, collapsible, and
+         carrying the booth's own knob markup with the booth's own ids. -->
+    <div class="dock" id="dock">
+      <div class="wrap-wide dock-inner">
+        <button class="dock-toggle" type="button" aria-expanded="true" aria-controls="dock-body">
+          <span class="dock-title">Controls</span>
+          <span class="dock-hint mono">{d.knobs.map((k) => k.label).join(' · ')}</span>
+          <span class="dock-chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="controls" id="dock-body" set:html={block.controls} />
+      </div>
+    </div>
+  </div>
+
+  <!-- One source of truth: these are the booth's files, loaded from the
+       offline bundle unchanged. Never fork the physics. -->
+  <script is:inline src="/demos/data/constants.js"></script>
+  <script is:inline src="/demos/physics.js"></script>
+  <script is:inline src="/demos/mathfmt.js"></script>
+  <script is:inline src="/demos/circuits/hotspots.js"></script>
+  <script is:inline src="/demos/shared.js"></script>
+  <script is:inline src="/demo-wire/booth-site.js"></script>
+  <script is:inline src={`/demo-wire/${demo.id}.js`}></script>
+  <script src="../../scripts/demo-shell.ts"></script>
+</Base>
+
+<style>
+  .layout {
+    display: grid; grid-template-columns: 15rem minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    padding-block: 2.5rem 0;
+    align-items: start;
+  }
+
+  /* ---- the outline rail ------------------------------------------------- */
+  .rail { position: sticky; top: 5rem; }
+  .rail ol { list-style: none; margin: 0 0 1.5rem; padding: 0; border-left: 1px solid var(--rule); }
+  .rail li { margin: 0; }
+  .rail a {
+    display: block; padding: 0.4rem 0 0.4rem 1rem; margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-family: var(--display); font-weight: 600; font-size: var(--t-label);
+    color: var(--ink-faint); text-decoration: none;
+  }
+  .rail a:hover { color: var(--ink); }
+  .rail a[aria-current='true'] { color: var(--accent); border-left-color: var(--accent); }
+  .rail-foot { margin: 0; }
+
+  /* ---- the article ------------------------------------------------------ */
+  .article { min-width: 0; display: flex; flex-direction: column; gap: 2.5rem; padding-bottom: 3rem; }
+  .hook h1 { font-size: clamp(2.25rem, 5vw, var(--t-title)); max-width: 16ch; }
+  .hook .lede { max-width: 56ch; }
+  .intro { margin-top: 1.5rem; }
+  .section-rule {
+    font-size: var(--t-head); padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--ink); margin-bottom: 1.25rem;
+  }
+  .note { color: var(--ink-soft); font-size: var(--t-small); max-width: var(--measure); }
+  .refs { list-style: none; margin: 0; padding: 0; }
+  .refs li {
+    padding: 0.7rem 0; border-bottom: 1px solid var(--rule);
+    font-family: var(--mono); font-size: var(--t-label); color: var(--ink-soft); line-height: 1.6;
+  }
+  .further { list-style: none; margin: 1.5rem 0 0; padding: 0; }
+  .further li {
+    padding: 0.7rem 0; border-bottom: 1px solid var(--rule);
+    font-size: var(--t-small); color: var(--ink-soft);
+  }
+  .further a { font-family: var(--display); font-weight: 600; }
+  .further-figure { max-width: 34rem; }
+
+  /* ---- the control dock ------------------------------------------------- */
+  .dock {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--wash);
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 -1px 2px rgb(20 19 28 / .06);
+  }
+  .dock-inner { padding-block: 0.5rem 1rem; }
+  .dock-toggle {
+    display: flex; align-items: baseline; gap: 0.75rem; width: 100%;
+    background: transparent; border: 0; border-radius: var(--radius);
+    padding: 0.5rem 0.25rem; min-height: 40px; text-align: left; cursor: pointer;
+  }
+  .dock-title { font-family: var(--display); font-weight: 700; font-size: var(--t-small); color: var(--ink); }
+  .dock-hint {
+    font-size: var(--t-fine); color: var(--ink-faint);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .dock-chev { color: var(--ink-faint); transition: transform 140ms ease; }
+  .dock-toggle[aria-expanded='false'] .dock-chev { transform: rotate(-90deg); }
+  .dock-toggle[aria-expanded='false'] + .controls { display: none; }
+  /* Keeps the last section clear of the dock. */
+  .dock-spacer { height: 13rem; }
+
+  @media (prefers-reduced-motion: reduce) { .dock-chev { transition: none; } }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    /* The rail becomes a sticky chip strip. */
+    .rail {
+      position: sticky; top: 64px; z-index: 30;
+      background: var(--wash); border-bottom: 1px solid var(--rule);
+      margin-inline: -1.125rem; padding: 0.5rem 1.125rem;
+    }
+    .rail .eyebrow, .rail-foot { display: none; }
+    .rail ol {
+      display: flex; gap: 0.4rem; overflow-x: auto; border-left: 0;
+      margin: 0; padding-bottom: 0.15rem;
+    }
+    .rail a {
+      padding: 0.35rem 0.7rem; margin: 0; white-space: nowrap;
+      border: 1px solid var(--rule); border-radius: var(--radius);
+    }
+    .rail a[aria-current='true'] {
+      border-color: var(--accent); background: var(--accent-soft);
+    }
+    .dock-spacer { height: 16rem; }
+  }
+
+  /* ---- booth mode — ?kiosk=1 -------------------------------------------- */
+  :global(body.kiosk) :global(header.bar),
+  :global(body.kiosk) :global(footer.foot),
+  :global(body.kiosk) .rail { display: none; }
+  :global(body.kiosk) .article { font-size: 1.25rem; }
+  :global(body.kiosk) .layout { grid-template-columns: minmax(0, 1fr); }
+</style>

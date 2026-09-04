@@ -1,0 +1,29 @@
+---
+/* /explore — a hub with three cards and no content of its own. It exists so the
+   nav has somewhere to point and so the three pages under it are findable; if
+   it ever grows content, one of those three has failed. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import CTABand from '../../components/CTABand.astro';
+
+const CARDS = [
+  { title: 'What we do', href: '/explore/what-we-do', body: 'Workshops, projects, research, talks and the community — what each one actually involves, week to week.' },
+  { title: 'The Quantum Stack', href: '/explore/quantum-stack', body: 'Software, physics and hardware, and where they meet. The map to work out which part of this is yours.' },
+  { title: 'Resources', href: '/explore/resources', body: 'Where to start, depending on where you are starting from. Every item says why it is on the list.' },
+];
+---
+<Base title="Explore" description="What QuEST does, how quantum fits together, and where to start reading.">
+  <PageHeader eyebrow="Explore" title="Three ways in" lede="Start wherever makes sense. Nobody is required to read the beginner page to reach a project." />
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="grid grid-3">
+        {CARDS.map((card) => (
+          <a class="card-link" href={card.href}>
+            <article class="card"><h3>{card.title}</h3><p>{card.body}</p></article>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CTABand title="Or skip straight to the demos." href="/demos" action="Try one" />
+</Base>

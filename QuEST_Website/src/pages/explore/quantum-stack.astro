@@ -1,0 +1,76 @@
+---
+/* /explore/quantum-stack — the signature page. Static SVG in Phase 1, with the
+   nested-list version always in the DOM and never display:none. It becomes
+   interactive in Phase 2; the list stays either way. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import StackDiagram from '../../components/StackDiagram.astro';
+import CTABand from '../../components/CTABand.astro';
+import { sorted, demos, projects } from '../../lib/content';
+
+const nodes = await sorted('stack');
+const allDemos = await demos();
+const allProjects = await projects();
+const demoById = new Map(allDemos.map((d) => [d.id, d]));
+const projectById = new Map(allProjects.map((p) => [p.id, p]));
+
+const BRANCHES = [
+  { key: 'software', label: 'Software' },
+  { key: 'physics', label: 'Physics' },
+  { key: 'hardware', label: 'Hardware' },
+  { key: 'applications', label: 'Applications' },
+] as const;
+---
+<Base
+  title="The Quantum Stack"
+  description="Software, physics and hardware, and the applications where they meet — with the club's own demos and projects attached to each node."
+  wide
+>
+  <PageHeader
+    eyebrow="Explore"
+    title="The Quantum Stack"
+    lede="Quantum is not one subject. Three branches answer three different questions about the same machine, and they meet at the applications. Most people arrive wanting one branch and discover they wanted another — that discovery is the whole reason this map exists."
+  />
+
+  <section class="section-tight">
+    <div class="wrap-wide"><StackDiagram nodes={nodes} list="index" level={2} /></div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      {BRANCHES.map((branch) => (
+        <div class="branch">
+          <h2 class="rule">{branch.label}</h2>
+          {nodes.filter((n) => n.data.branch === branch.key).map((node) => {
+            const demo = node.data.demo ? demoById.get(node.data.demo.id) : null;
+            const linked = node.data.projects.map((id) => projectById.get(id)).filter(Boolean);
+            return (
+              <article class="node" id={node.id}>
+                <h3>{node.data.title}</h3>
+                <p>{node.data.summary}</p>
+                {(demo || linked.length > 0) && (
+                  <p class="evidence">
+                    {demo && <a class="text-link" href={`/demos/${demo.id}`}>Demo — {demo.data.title} →</a>}
+                    {linked.map((project) => (
+                      <a class="text-link" href={`/projects/${project!.id}`}>Project — {project!.data.title} →</a>
+                    ))}
+                  </p>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <CTABand title="Found the branch that is yours?" href="/explore/resources" action="Start reading" secondaryHref="/projects" secondary="Or find a project" />
+</Base>
+<style>
+  .branch { margin-bottom: 3rem; }
+  .rule { padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); margin-bottom: 1.5rem; }
+  .node { padding-block: 1.25rem; border-bottom: 1px solid var(--rule); scroll-margin-top: 6rem; }
+  .node h3 { font-size: var(--t-lead); margin-bottom: 0.35rem; }
+  .node p { color: var(--ink-soft); max-width: var(--measure); margin-bottom: 0; }
+  .evidence { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.85rem !important; }
+</style>

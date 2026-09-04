@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bell test &middot; QCC qfest booth</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<main class="station">
+
+  <div class="topbar">
+      <a class="brand" href="index.html">
+        <img class="logo-on-dark" src="quest-logo.png" alt="QuEST">
+        <img class="logo-on-light" src="quest-logo-light.png" alt="QuEST">
+      </a>
+      <nav class="station-nav" aria-label="Stations">
+        <a href="index.html">All stations</a>
+        <a href="grover.html">Search</a>
+        <a href="bell.html" aria-current="page">Correlation</a>
+        <a href="stern-gerlach.html">Measurement</a>
+        <a href="vqe-h2.html">Chemistry</a>
+      </nav>
+      <button id="theme-toggle" class="theme-toggle" type="button"
+              aria-label="Switch between dark and light">Light</button>
+  </div>
+
+  <header class="station-head">
+    <div>
+      <p class="eyebrow">Station &middot; correlation</p>
+      <h1>Push the needle past 2</h1>
+      <p class="hook">Two particles fly apart. Two detectors, set independently,
+        far away from each other. Any universe where the answers were decided in
+        advance is stuck below 2. Find the angle that gets you past it.</p>
+    </div>
+    <div class="button-row">
+      <button id="best-angle">Find the best angle</button>
+      <button id="reset" class="primary">Reset</button>
+    </div>
+  </header>
+
+  <div class="readout">
+    <span class="value good" id="s-value">2.83</span>
+    <span class="caption" id="caption">
+      Measured correlation <em>S</em>. Anything above 2 is impossible without
+      the two detectors somehow agreeing behind your back.
+    </span>
+    <span class="pill good" id="verdict">violating</span>
+    <span class="attract-note" id="attract-note" hidden>demo running &mdash; touch to take over</span>
+  </div>
+
+  <div class="panels two">
+    <section class="panel">
+      <h2>How far past the classical limit</h2>
+      <canvas id="gauge" data-height="250" role="img"
+              aria-label="Gauge showing S against the classical bound of 2 and the quantum ceiling"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>The two detectors</h2>
+      <canvas id="detectors" data-height="250" role="img"
+              aria-label="Diagram of the entangled pair and the two analyser angles"></canvas>
+    </section>
+  </div>
+
+  <div class="controls">
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="delta">Bob's detector angle</label></span>
+        <span class="knob-value" id="delta-value">0&deg;</span>
+      </div>
+      <input type="range" id="delta" min="0" max="90" step="1" value="0">
+      <span class="knob-hint">This is the dial. 45&deg; lands exactly on the classical limit.</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label">
+        <span class="knob-name"><label for="shots">Pairs measured</label></span>
+        <span class="knob-value" id="shots-value">2000</span>
+      </div>
+      <input type="range" id="shots" min="1" max="4" step="1" value="3">
+      <span class="knob-hint">10, 100, 2000 or 20000 &mdash; watch the noise shrink</span>
+    </div>
+
+    <div class="knob">
+      <div class="knob-label"><span class="knob-name">Are they entangled?</span></div>
+      <div class="button-row">
+        <button id="mode-entangled" aria-pressed="true">Entangled pair</button>
+        <button id="mode-product" aria-pressed="false">Ordinary pair</button>
+      </div>
+      <span class="knob-hint">An ordinary pair can never get past 2, at any angle</span>
+    </div>
+  </div>
+
+  <div class="panels two">
+    <section class="panel">
+      <h2>S as you turn Bob's dial</h2>
+      <canvas id="curve" data-height="200" role="img"
+              aria-label="S plotted against the detuning angle"></canvas>
+    </section>
+
+    <section class="panel">
+      <h2>Coincidence counts <span id="shots-label" style="color:var(--ink-faint);font-weight:400"></span></h2>
+      <div class="tablewrap">
+        <table class="data">
+          <thead>
+            <tr><th>Setting</th><th class="num">both +</th><th class="num">+ &minus;</th>
+                <th class="num">&minus; +</th><th class="num">both &minus;</th><th class="num">E</th></tr>
+          </thead>
+          <tbody id="counts"></tbody>
+        </table>
+      </div>
+      <p style="color:var(--ink-faint);font-size:.85rem;margin:0">
+        Sampled, not calculated &mdash; so the numbers wobble exactly as a real
+        experiment's would. Raise the shot count and the wobble shrinks.
+      </p>
+    </section>
+  </div>
+
+
+  <details class="maths">
+    <summary>Show the maths</summary>
+    <div class="maths-body">
+      <p><strong>The classical bound, from arithmetic alone.</strong> Suppose each particle carries instructions <span class="eq" data-tex="\lambda"></span> fixed when the pair was created, so Alice&rsquo;s outcome is <span class="eq" data-tex="A(a,\lambda) = \pm 1"></span> and Bob&rsquo;s is <span class="eq" data-tex="B(b,\lambda) = \pm 1"></span>. Consider one <span class="eq" data-tex="\lambda"></span> at a time:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} S(\lambda) &amp;= A(a)\big[B(b) - B(b')\big] + A(a')\big[B(b) + B(b')\big] \\[3pt] &amp;\quad \text{one bracket vanishes, the other is } \pm 2 \\[3pt] S(\lambda) &amp;= \pm 2 \end{aligned}" data-display></div>
+      </div>
+      <p>Averaging over <span class="eq" data-tex="\lambda"></span> can only shrink a quantity bounded by 2, so <em>every</em> local hidden-variable theory obeys</p>
+      <div class="eq" data-tex="S = E(a,b) - E(a,b') + E(a',b) + E(a',b') \qquad |S| \leq 2" data-display></div>
+      <p>No physics went into that &mdash; only the assumption that the answers existed before they were asked for.</p>
+      <p><strong>What quantum mechanics predicts.</strong> Take the Bell state and let each analyser measure spin along a direction in the <span class="eq" data-tex="xz"></span> plane:</p>
+      <div class="eq" data-tex="\ket{\Phi^+} = \frac{1}{\sqrt{2}}\big(\ket{00} + \ket{11}\big) \qquad A(a) = \cos a\;\sigma_z + \sin a\;\sigma_x" data-display></div>
+      <p>The Bell state has <span class="eq" data-tex="\expval{\sigma_z \otimes \sigma_z} = 1"></span>, <span class="eq" data-tex="\expval{\sigma_x \otimes \sigma_x} = 1"></span> and <span class="eq" data-tex="\expval{\sigma_z \otimes \sigma_x} = \expval{\sigma_x \otimes \sigma_z} = 0"></span>. Expanding the product:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} E(a,b) &amp;= \bra{\Phi^+} A(a) \otimes B(b) \ket{\Phi^+} \\ &amp;= \cos a \cos b \,\expval{\sigma_z\sigma_z} + \sin a \sin b \,\expval{\sigma_x\sigma_x} \\ &amp;\quad + \cos a \sin b \,\expval{\sigma_z\sigma_x} + \sin a \cos b\,\expval{\sigma_x\sigma_z} \\ &amp;= \cos a \cos b + \sin a \sin b \\ &amp;= \cos(a-b) \end{aligned}" data-display></div>
+      </div>
+      <p>Now put in the four settings. Each term is a <span class="eq" data-tex="45^\circ"></span> correlation:</p>
+      <div class="derivation">
+        <div class="eq" data-tex="\begin{aligned} a = 0,\quad a' &amp;= \tfrac{\pi}{2}, \quad b = \tfrac{\pi}{4}, \quad b' = \tfrac{3\pi}{4} \\[3pt] S &amp;= \cos\!\left(-\tfrac{\pi}{4}\right) - \cos\!\left(-\tfrac{3\pi}{4}\right) + \cos\!\left(\tfrac{\pi}{4}\right) + \cos\!\left(-\tfrac{\pi}{4}\right) \\[2pt] &amp;= \tfrac{1}{\sqrt{2}} + \tfrac{1}{\sqrt{2}} + \tfrac{1}{\sqrt{2}} + \tfrac{1}{\sqrt{2}} \\[2pt] &amp;= 2\sqrt{2} \approx 2.828 \end{aligned}" data-display></div>
+      </div>
+      <p>and <span class="eq" data-tex="2\sqrt{2}"></span> is the most any quantum state can manage &mdash; Tsirelson&rsquo;s bound. Nature sits strictly between &ldquo;decided in advance&rdquo; and &ldquo;anything goes&rdquo;.</p>
+      <p><strong>What the dial does.</strong> Rotating both of Bob&rsquo;s settings by <span class="eq" data-tex="\delta"></span> turns every correlation into <span class="eq" data-tex="\cos(a - b - \delta)"></span>, giving <span class="eq" data-tex="S(\delta) = 2\sqrt{2}\,\cos\delta"></span>. At <span class="eq" data-tex="\delta = 45^\circ"></span> that is exactly 2 &mdash; the classical bound, to the digit.</p>
+      <figure class="circuit" data-circuit="bell">
+        <div class="circuit-stage"><img src="circuits/bell.svg" alt="Bell circuit: Hadamard and CNOT make the pair, then a rotation on each side before measuring"></div>
+        <p class="circuit-tip">Hover or tap any gate to see what it does.</p>
+        <figcaption>The Hadamard and CNOT build |&Phi;&#8314;&rang;. Each analyser angle becomes an <b>RY</b> before a computational-basis measurement &mdash; here Alice at 90&deg; and Bob at 45&deg;.</figcaption>
+      </figure>
+      <p><strong>What this station is not.</strong> It is a simulation, so it cannot rule anything out. A real Bell test must close the detection and locality loopholes at the same time, first achieved in 2015 with detectors 1.3 km apart.</p>
+      <div class="cite">
+        <b>Bell</b>, Physics 1 (1964) 195 &middot;
+        <b>Clauser, Horne, Shimony, Holt</b>, Phys. Rev. Lett. 23 (1969) 880 &mdash;
+        the <span class="eq" data-tex="S"></span> combination &middot;
+        <b>Tsirelson</b>, Lett. Math. Phys. 4 (1980) 93 &mdash; the
+        <span class="eq" data-tex="2\sqrt{2}"></span> ceiling &middot;
+        <b>Hensen et al.</b>, Nature 526 (2015) 682 &mdash; loophole-free test.
+        Values asserted in <code>verify/test_reference.py</code>.
+      </div>
+    </div>
+  </details>
+
+  <footer class="station-foot">
+    <span>QCC qfest &middot; station 2 of 4</span>
+    <span><a href="index.html">All stations</a></span>
+  </footer>
+</main>
+
+<script src="data/constants.js"></script>
+<script src="physics.js"></script>
+<script src="mathfmt.js"></script>
+<script src="circuits/hotspots.js"></script>
+<script src="shared.js"></script>
+<script>
+(function () {
+  "use strict";
+  Booth.requireConstants();
+  Booth.initTheme();
+  if (!window.Physics) throw new Error("booth/physics.js did not load");
+
+  var B = Physics.chsh;
+  var C = Booth.palette({
+    ink: "--ink", inkSoft: "--ink-soft",
+    inkFaint: "--ink-faint", rule: "--rule",
+    ruleBright: "--rule-bright", marked: "--marked",
+    amp: "--amp", good: "--good", bad: "--bad"
+  });
+
+  var SHOT_STEPS = [10, 100, 2000, 20000];
+
+  var state = { deltaDeg: 0, shotsIndex: 3, entangled: true, counts: null, sampledS: 0 };
+
+  function delta() { return state.deltaDeg * Math.PI / 180; }
+  function shots() { return SHOT_STEPS[state.shotsIndex - 1]; }
+  function stateVector() {
+    return state.entangled ? B.bellPhiPlus() : B.productState(0, 0);
+  }
+
+  /* The four (Alice, Bob) settings the CHSH combination needs. */
+  function settings() {
+    var d = delta();
+    return [
+      { name: "a, b",   alice: B.ANGLES.a,      bob: B.ANGLES.b + d,      sign: +1 },
+      { name: "a, b'",  alice: B.ANGLES.a,      bob: B.ANGLES.bPrime + d, sign: -1 },
+      { name: "a', b",  alice: B.ANGLES.aPrime, bob: B.ANGLES.b + d,      sign: +1 },
+      { name: "a', b'", alice: B.ANGLES.aPrime, bob: B.ANGLES.bPrime + d, sign: +1 }
+    ];
+  }
+
+  function exactS() { return B.SDetuned(delta(), stateVector()); }
+
+  /* Re-sample every setting, so the panel shows real shot noise. */
+  function resample() {
+    var psi = stateVector();
+    var total = 0;
+    state.counts = settings().map(function (setting) {
+      var counts = B.sample(setting.alice, setting.bob, shots(), psi);
+      var correlation = B.correlatorFromCounts(counts);
+      total += setting.sign * correlation;
+      return { name: setting.name, counts: counts, E: correlation };
+    });
+    state.sampledS = total;
+  }
+
+  // ---------------------------------------------------------------- gauge
+  var gauge = Booth.canvas(document.getElementById("gauge"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var cx = w / 2, cy = h * 0.86, radius = Math.min(w * 0.42, h * 0.76);
+    var maxS = 3.2;
+    function angleFor(value) { return Math.PI + (value / maxS) * Math.PI; }
+
+    // dial arc
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = Booth.css("--panel-2");
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+
+    // the classically forbidden zone, drawn as a distinct band not just a hue
+    ctx.strokeStyle = C.good;
+    ctx.globalAlpha = 0.30;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, angleFor(2), angleFor(B.TSIRELSON));
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // hard line at the classical bound
+    [[2, C.bad, "classical limit 2"], [B.TSIRELSON, C.good, "quantum max 2.83"]]
+      .forEach(function (mark) {
+        var a = angleFor(mark[0]);
+        ctx.strokeStyle = mark[1];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx + (radius - 13) * Math.cos(a), cy + (radius - 13) * Math.sin(a));
+        ctx.lineTo(cx + (radius + 13) * Math.cos(a), cy + (radius + 13) * Math.sin(a));
+        ctx.stroke();
+        ctx.fillStyle = mark[1];
+        ctx.font = "600 12px " + Booth.css("--sans");
+        ctx.textAlign = "center";
+        ctx.fillText(mark[2], cx + (radius + 30) * Math.cos(a), cy + (radius + 30) * Math.sin(a) + 4);
+      });
+
+    // needle
+    var value = Math.max(0, Math.min(maxS, Math.abs(state.sampledS)));
+    var needle = angleFor(value);
+    ctx.strokeStyle = value > 2 ? C.good : C.marked;
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + radius * 0.86 * Math.cos(needle), cy + radius * 0.86 * Math.sin(needle));
+    ctx.stroke();
+    ctx.fillStyle = C.ink;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // faint marker for the exact (infinite-shot) value
+    var exact = angleFor(Math.min(maxS, Math.abs(exactS())));
+    ctx.strokeStyle = C.inkFaint;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx + radius * 0.55 * Math.cos(exact), cy + radius * 0.55 * Math.sin(exact));
+    ctx.lineTo(cx + radius * 0.92 * Math.cos(exact), cy + radius * 0.92 * Math.sin(exact));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // ------------------------------------------------------------ detectors
+  var detectors = Booth.canvas(document.getElementById("detectors"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var cy = h * 0.5;
+
+    // source
+    ctx.fillStyle = state.entangled ? C.marked : C.inkFaint;
+    ctx.beginPath();
+    ctx.arc(w / 2, cy, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = "13px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    ctx.fillText(state.entangled ? "entangled source" : "ordinary source", w / 2, cy + 34);
+
+    // the two beams
+    ctx.strokeStyle = state.entangled ? C.marked : C.ruleBright;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(state.entangled ? [] : [5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 12, cy); ctx.lineTo(w * 0.20, cy);
+    ctx.moveTo(w / 2 + 12, cy); ctx.lineTo(w * 0.80, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // analysers, drawn as physical dials so the angle is visible
+    [{ x: w * 0.16, label: "Alice", angle: B.ANGLES.a, alt: B.ANGLES.aPrime },
+     { x: w * 0.84, label: "Bob", angle: B.ANGLES.b + delta(), alt: B.ANGLES.bPrime + delta() }
+    ].forEach(function (station) {
+      ctx.strokeStyle = C.ruleBright;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(station.x, cy, 30, 0, Math.PI * 2);
+      ctx.stroke();
+
+      [[station.angle, C.amp, 3], [station.alt, C.inkFaint, 2]].forEach(function (setting) {
+        var a = -setting[0];
+        ctx.strokeStyle = setting[1];
+        ctx.lineWidth = setting[2];
+        ctx.beginPath();
+        ctx.moveTo(station.x - 28 * Math.cos(a), cy - 28 * Math.sin(a));
+        ctx.lineTo(station.x + 28 * Math.cos(a), cy + 28 * Math.sin(a));
+        ctx.stroke();
+      });
+
+      ctx.fillStyle = C.ink;
+      ctx.font = "600 14px " + Booth.css("--sans");
+      ctx.textAlign = "center";
+      ctx.fillText(station.label, station.x, cy - 44);
+      ctx.fillStyle = C.amp;
+      ctx.font = "12px " + Booth.css("--sans");
+      ctx.fillText(Math.round(station.angle * 180 / Math.PI) + "°", station.x, cy + 52);
+    });
+  });
+
+  // ---------------------------------------------------------------- curve
+  var curve = Booth.canvas(document.getElementById("curve"), function (view) {
+    var ctx = view.ctx, w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    var padL = 44, padR = 14, padT = 12, padB = 30;
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+    var maxS = 3.2;
+
+    function yFor(value) { return padT + plotH * (1 - value / maxS); }
+
+    [0, 1, 2, 3].forEach(function (value) {
+      var y = yFor(value);
+      ctx.strokeStyle = value === 2 ? C.bad : C.rule;
+      ctx.lineWidth = value === 2 ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(padL, Booth.crisp(y)); ctx.lineTo(w - padR, Booth.crisp(y));
+      ctx.stroke();
+      ctx.fillStyle = value === 2 ? C.bad : C.inkFaint;
+      ctx.font = "11px " + Booth.css("--sans");
+      ctx.textAlign = "right";
+      ctx.fillText(value.toFixed(0), padL - 7, y + 4);
+    });
+
+    var psi = stateVector();
+    ctx.strokeStyle = C.amp;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var px = 0; px <= plotW; px++) {
+      var d = (px / plotW) * Math.PI / 2;
+      var y = yFor(Math.abs(B.SDetuned(d, psi)));
+      if (px === 0) ctx.moveTo(padL + px, y); else ctx.lineTo(padL + px, y);
+    }
+    ctx.stroke();
+
+    var nowX = padL + (state.deltaDeg / 90) * plotW;
+    var nowY = yFor(Math.abs(exactS()));
+    ctx.fillStyle = C.marked;
+    ctx.beginPath(); ctx.arc(nowX, nowY, 7, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = C.inkFaint;
+    ctx.font = "11px " + Booth.css("--sans");
+    ctx.textAlign = "center";
+    [0, 45, 90].forEach(function (deg) {
+      ctx.fillText(deg + "°", padL + (deg / 90) * plotW, h - 9);
+    });
+  });
+
+  // -------------------------------------------------------------- refresh
+  function renderCounts() {
+    var rows = state.counts.map(function (row) {
+      return "<tr" + (Math.abs(row.E) > 0.6 ? ' class="highlight"' : "") + ">"
+        + "<td>" + row.name + "</td>"
+        + "<td class=\"num\">" + row.counts["1,1"] + "</td>"
+        + "<td class=\"num\">" + row.counts["1,-1"] + "</td>"
+        + "<td class=\"num\">" + row.counts["-1,1"] + "</td>"
+        + "<td class=\"num\">" + row.counts["-1,-1"] + "</td>"
+        + "<td class=\"num\">" + row.E.toFixed(3) + "</td></tr>";
+    }).join("");
+    document.getElementById("counts").innerHTML = rows;
+    document.getElementById("shots-label").textContent =
+      "— " + shots().toLocaleString() + " pairs per setting";
+  }
+
+  function refresh(resampleFirst) {
+    if (resampleFirst !== false) resample();
+
+    var measured = Math.abs(state.sampledS);
+    var element = document.getElementById("s-value");
+    element.textContent = measured.toFixed(2);
+    element.className = "value " + (measured > 2 ? "good" : "warn");
+
+    var verdict = document.getElementById("verdict");
+    var caption = document.getElementById("caption");
+    if (!state.entangled) {
+      verdict.textContent = "no violation possible";
+      verdict.className = "pill";
+      caption.textContent = "An ordinary pair carries its answers from the start. "
+        + "No angle will ever push this past 2.";
+    } else if (measured > 2.0) {
+      verdict.textContent = "violating";
+      verdict.className = "pill good";
+      caption.textContent = "Above 2. No theory where each particle decided its "
+        + "answer in advance can produce this.";
+    } else {
+      verdict.textContent = "within classical range";
+      verdict.className = "pill bad";
+      caption.textContent = "At or below 2 — a boring universe could fake this. "
+        + "Turn Bob's dial back towards 0°.";
+    }
+
+    renderCounts();
+    gauge.repaint();
+    detectors.repaint();
+    curve.repaint();
+  }
+
+  // ---------------------------------------------------------------- knobs
+  var deltaKnob = Booth.knob("delta", function (value) {
+    state.deltaDeg = value;
+    refresh();
+  }, function (value) { return Math.round(value) + "°"; });
+
+  var shotsKnob = Booth.knob("shots", function (value) {
+    state.shotsIndex = value;
+    refresh();
+  }, function (value) { return SHOT_STEPS[value - 1].toLocaleString(); });
+
+  function setMode(entangled) {
+    state.entangled = entangled;
+    document.getElementById("mode-entangled").setAttribute("aria-pressed", String(entangled));
+    document.getElementById("mode-product").setAttribute("aria-pressed", String(!entangled));
+    refresh();
+  }
+  document.getElementById("mode-entangled").addEventListener("click", function () { setMode(true); });
+  document.getElementById("mode-product").addEventListener("click", function () { setMode(false); });
+
+  document.getElementById("best-angle").addEventListener("click", function () {
+    Booth.animate(state.deltaDeg, 0, 600, function (value) {
+      state.deltaDeg = value;
+      deltaKnob.set(Math.round(value), true);
+      document.getElementById("delta-value").textContent = Math.round(value) + "°";
+      refresh(false);
+    }, function () { refresh(); });
+  });
+
+  Booth.reset("reset", function () {
+    state.deltaDeg = 0;
+    state.shotsIndex = 3;
+    deltaKnob.set(0, true);
+    shotsKnob.set(3, true);
+    document.getElementById("delta-value").textContent = "0°";
+    document.getElementById("shots-value").textContent = "2,000";
+    setMode(true);
+  });
+
+  Booth.attract({
+    idleMs: 45000, periodMs: 10000,
+    note: document.getElementById("attract-note"),
+    onFrame: function (phase) {
+      var sweep = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+      var value = Math.round(sweep * 90);
+      if (value !== state.deltaDeg) {
+        state.deltaDeg = value;
+        deltaKnob.set(value, true);
+        document.getElementById("delta-value").textContent = value + "°";
+        refresh();
+      }
+    }
+  });
+
+  MathFmt.install(document);
+  Booth.circuits(document);
+
+  refresh();
+})();
+</script>
+</body>
+</html>

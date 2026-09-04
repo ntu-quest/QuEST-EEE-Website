@@ -1,0 +1,30 @@
+---
+/* /contact — a routing table, not a form. A form needs a backend, spam
+   handling and someone who checks it; a mailto: lands in an inbox already
+   being read. */
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import ContactRouter from '../components/ContactRouter.astro';
+import LinkList from '../components/LinkList.astro';
+import { liveLinks } from '../lib/content';
+
+const links = await liveLinks('links');
+---
+<Base title="Contact" description="Who to email at QuEST@EEE about what.">
+  <PageHeader
+    eyebrow="Contact"
+    title="Who to ask about what"
+    lede="Every address reaches a person. If none of the rows below fits, use the first one — the President's inbox is the one that catches everything."
+  />
+  <section class="section-tight"><div class="wrap"><ContactRouter /></div></section>
+  <section class="section">
+    <div class="wrap">
+      <h2>Elsewhere</h2>
+      <LinkList links={links} />
+      <p class="caption" style="margin-top:1.5rem">
+        We typically reply within a few days during term time. Addresses on this page are
+        assembled in your browser rather than written into the page.
+      </p>
+    </div>
+  </section>
+</Base>

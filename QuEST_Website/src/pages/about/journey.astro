@@ -1,0 +1,65 @@
+---
+/* /about/journey — informal community → Fall Fest → the rename. The old QCC
+   mark opens it, labelled as history: never the nav, never the favicon, never
+   the OG image. */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Figure from '../../components/Figure.astro';
+import Timeline from '../../components/Timeline.astro';
+import CTABand from '../../components/CTABand.astro';
+import { sorted, media } from '../../lib/content';
+
+const milestones = await sorted('milestones');
+const oldMark = await media('qcc-mark');
+const poster = await media('poster-qcc-seminar');
+const cqt = await media('fallfest-panel');
+---
+<Base title="Our journey" description="How QuEST@EEE got from an informal community to a club with a research programme.">
+  <PageHeader
+    eyebrow="About"
+    title="Our journey"
+    lede="Nothing here is deleted when it stops being current. A club that throws away its own record has to explain itself from scratch to every new intake."
+  />
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="before">
+        <div class="mark-box">
+          {oldMark && <Figure entry={oldMark} caption aspect="1 / 1" sizes="220px" />}
+        </div>
+        <div>
+          <h2>Before</h2>
+          <p>
+            The <strong>NTU Quantum Computing Club</strong>. Singapore's first undergraduate,
+            student-run quantum-centric club, built around a rolling workshop series and the belief
+            that the entry barrier was mostly artificial.
+          </p>
+          <p>
+            That mark — a Bloch sphere inside a bra-ket — is retired. It belongs here and only here:
+            not in the navigation, not as the favicon, and not on anything we publish as current.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap"><Timeline milestones={milestones} /></div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid grid-2">
+        {poster && <Figure entry={poster} caption sizes="(max-width: 760px) 100vw, 45vw" />}
+        {cqt && <Figure entry={cqt} caption sizes="(max-width: 760px) 100vw, 45vw" />}
+      </div>
+    </div>
+  </section>
+
+  <CTABand title="The next part of it has you in it." href="/join" action="Join QuEST" secondaryHref="/events" secondary="See what's on" />
+</Base>
+<style>
+  .before { display: grid; grid-template-columns: 220px 1fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+  .before p { color: var(--ink-soft); max-width: var(--measure); }
+  @media (max-width: 700px) { .before { grid-template-columns: minmax(0, 1fr); } .mark-box { max-width: 200px; } }
+</style>

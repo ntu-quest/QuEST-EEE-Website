@@ -1,0 +1,242 @@
+---
+/* SiteHeader — navigation is the journey, not the org chart (BLUEPRINT §04).
+   Six top-level items plus a persistent Join button. The Join button is the
+   only filled element in the bar, and it stays visible in the collapsed mobile
+   header rather than hiding inside the hamburger.
+
+   The mark is not used at nav size: below 96px the gradient artwork's "EST"
+   dies, so the bar carries the wordmark set in Manrope, which is the rule for
+   the mark in running text anyway. */
+import Icon from './Icon.astro';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const on = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+
+const NAV = [
+  {
+    label: 'Explore', href: '/explore', children: [
+      { label: 'What we do', href: '/explore/what-we-do' },
+      { label: 'The Quantum Stack', href: '/explore/quantum-stack' },
+      { label: 'Resources', href: '/explore/resources' },
+    ],
+  },
+  { label: 'Demos', href: '/demos' },
+  { label: 'Projects', href: '/projects' },
+  { label: 'Research', href: '/research' },
+  { label: 'Events', href: '/events' },
+  {
+    label: 'About', href: '/about', children: [
+      { label: 'Who we are', href: '/about' },
+      { label: 'Our journey', href: '/about/journey' },
+      { label: 'Our culture', href: '/about/culture' },
+      { label: 'People', href: '/about/people' },
+      { label: 'Network', href: '/about/network' },
+    ],
+  },
+];
+---
+
+<header class="bar">
+  <div class="wrap-wide bar-inner">
+    <a class="brand" href="/">
+      <span class="bracket" aria-hidden="true">⟨</span>QuEST@EEE<span class="bracket" aria-hidden="true">⟩</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul>
+        {NAV.map((item) => item.children ? (
+          <li class="has-menu">
+            {/* A details/summary disclosure: it opens on click and on Enter,
+                closes on Escape, and needs no JavaScript at all. */}
+            <details name="nav">
+              <summary aria-current={on(item.href) ? 'true' : undefined}>
+                {item.label}<span class="chev" aria-hidden="true">▾</span>
+              </summary>
+              <ul class="menu">
+                {item.children.map((child) => (
+                  <li><a href={child.href} aria-current={path === child.href ? 'page' : undefined}>{child.label}</a></li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        ) : (
+          <li><a href={item.href} aria-current={on(item.href) ? 'page' : undefined}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="bar-end">
+      <button class="icon-btn" id="theme-toggle" type="button"
+              aria-label="Switch between light and dark" aria-pressed="false">
+        <span class="in-light"><Icon name="moon" size={18} /></span>
+        <span class="in-dark"><Icon name="sun" size={18} /></span>
+      </button>
+      <a class="btn join" href="/join">Join QuEST</a>
+      <button class="icon-btn menu-btn" type="button"
+              aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
+        <span class="when-closed"><Icon name="menu" /></span>
+        <span class="when-open"><Icon name="close" /></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile" id="mobile-nav" hidden>
+    <nav class="wrap" aria-label="Primary, mobile">
+      <ul>
+        {NAV.map((item) => (
+          <li>
+            <a href={item.href} aria-current={on(item.href) ? 'page' : undefined}>{item.label}</a>
+            {item.children && (
+              <ul>
+                {item.children.map((child) => <li><a href={child.href}>{child.label}</a></li>)}
+              </ul>
+            )}
+          </li>
+        ))}
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/links">All links</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  /* Nav toggle and theme toggle. Both degrade to a working page without JS:
+     the mobile menu's contents are also in the footer, and the theme follows
+     the OS setting until someone overrides it here. */
+  const root = document.documentElement;
+  const button = document.querySelector<HTMLButtonElement>('.menu-btn');
+  const panel = document.querySelector<HTMLElement>('#mobile-nav');
+
+  button?.addEventListener('click', () => {
+    const open = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!open));
+    button.setAttribute('aria-label', open ? 'Open menu' : 'Close menu');
+    if (panel) panel.hidden = open;
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (panel && !panel.hidden) {
+      panel.hidden = true;
+      button?.setAttribute('aria-expanded', 'false');
+      button?.focus();
+    }
+    document.querySelectorAll<HTMLDetailsElement>('.nav details[open]')
+      .forEach((d) => { d.open = false; });
+  });
+
+  const toggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : media.matches);
+
+  const sync = () => toggle?.setAttribute('aria-pressed', String(isDark()));
+  sync();
+
+  toggle?.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('quest-theme', next); } catch { /* private mode */ }
+    sync();
+    /* The booth canvases cache their palette; tell them to re-read it. */
+    window.dispatchEvent(new CustomEvent('quest:themechange', { detail: next }));
+  });
+  media.addEventListener('change', () => { if (!root.dataset.theme) sync(); });
+</script>
+
+<style>
+  .bar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--wash);
+    border-bottom: 1px solid var(--rule);
+  }
+  .bar-inner {
+    display: flex; align-items: center; gap: 1.5rem;
+    min-height: 64px;
+  }
+
+  .brand {
+    font-family: var(--display); font-weight: 800; font-size: var(--t-lead);
+    letter-spacing: -0.02em; color: var(--ink); text-decoration: none;
+    white-space: nowrap; flex: none;
+  }
+  .brand:hover { color: var(--accent); }
+  .bracket { color: var(--accent); font-weight: 500; }
+
+  .nav { flex: 1; min-width: 0; }
+  .nav > ul { display: flex; align-items: center; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+  .nav a, .nav summary {
+    display: block;
+    font-family: var(--display); font-weight: 600; font-size: var(--t-small);
+    color: var(--ink-soft); text-decoration: none;
+    padding: 0.5rem 0.7rem; border-radius: var(--radius);
+    white-space: nowrap; cursor: pointer;
+  }
+  .nav a:hover, .nav summary:hover { color: var(--ink); background: var(--panel); }
+  .nav a[aria-current], .nav summary[aria-current] { color: var(--accent); }
+  .nav summary { list-style: none; }
+  .nav summary::-webkit-details-marker { display: none; }
+  /* Nothing below 12px, decorative glyph or not. */
+  .chev { font-size: var(--t-fine); margin-left: 0.3em; color: var(--ink-faint); }
+
+  .has-menu { position: relative; }
+  .menu {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+    min-width: 14rem; list-style: none; margin: 0; padding: 0.4rem;
+    background: var(--wash);
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    box-shadow: var(--elevation);
+  }
+
+  .bar-end { display: flex; align-items: center; gap: 0.5rem; flex: none; }
+  .join { padding: 0.55rem 1rem; min-height: 40px; }
+
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; padding: 0;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .icon-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .menu-btn { display: none; }
+
+  /* The theme toggle shows the state you can switch TO. */
+  .in-dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .in-dark { display: inline-flex; }
+    :global(:root:not([data-theme='light'])) .in-light { display: none; }
+  }
+  :global(:root[data-theme='dark']) .in-dark { display: inline-flex; }
+  :global(:root[data-theme='dark']) .in-light { display: none; }
+  :global(:root[data-theme='light']) .in-dark { display: none; }
+  :global(:root[data-theme='light']) .in-light { display: inline-flex; }
+
+  .mobile { border-top: 1px solid var(--rule); padding-block: 1rem 1.5rem; background: var(--wash); }
+  .mobile ul { list-style: none; margin: 0; padding: 0; }
+  .mobile > nav > ul > li > a {
+    display: block; padding: 0.6rem 0;
+    font-family: var(--display); font-weight: 700; font-size: var(--t-lead);
+    color: var(--ink); text-decoration: none;
+  }
+  .mobile ul ul { padding: 0 0 0.75rem 0.9rem; border-left: 1px solid var(--rule); margin-left: 0.1rem; }
+  .mobile ul ul a {
+    display: block; padding: 0.35rem 0;
+    font-family: var(--display); font-weight: 500; font-size: var(--t-small);
+    color: var(--ink-soft); text-decoration: none;
+  }
+
+  @media (max-width: 1020px) {
+    .nav { display: none; }
+    .menu-btn { display: inline-flex; }
+  }
+  @media (min-width: 1021px) { .mobile { display: none; } }
+  @media (max-width: 380px) {
+    .join { padding: 0.55rem 0.7rem; font-size: var(--t-label); }
+    #theme-toggle { display: none; }
+  }
+
+  .menu-btn .when-open { display: none; }
+  .menu-btn[aria-expanded='true'] .when-open { display: inline-flex; }
+  .menu-btn[aria-expanded='true'] .when-closed { display: none; }
+</style>

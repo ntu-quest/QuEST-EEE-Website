@@ -205,6 +205,7 @@ const news = defineCollection({
     date: z.coerce.date(),
     summary: z.string().max(220, 'News summary must be 220 characters or fewer'),
     event: reference('events').optional(),   // the event it promotes or reports
+    project: reference('projects').optional(), // or the project it announces
     image: z.string().optional(),            // an id from src/content/media/
     pinned: z.boolean().default(false),
     status: z.enum(['published', 'draft', 'archived']).default('published'),

@@ -72,7 +72,8 @@ workshop does more damage than a site with nothing on it.
 ## Posting news
 
 News sits at the top of the calendar page. Use it to promote an event before it
-happens, or to say that its photos are up afterwards.
+happens, to say that its photos are up afterwards, or to announce a new project
+(the club's blog).
 
 1. Copy a file in `src/content/news/` and rename it; the filename is its address.
 2. Fill in the settings:
@@ -83,6 +84,7 @@ title: "Quantum from Scratch is back on 2 March"
 date: 2027-02-10              # the day you post it
 summary: "One or two sentences. This is what shows on the card."
 event: "quantum-from-scratch-2027"   # optional: the event it is about
+project: "quest-website"             # optional: or the project it announces
 image: "poster-quantum-from-scratch" # optional: an id from src/content/media/
 pinned: true                  # optional: keeps it first
 status: published             # published, draft (hidden) or archived
@@ -92,7 +94,8 @@ Write the post here.
 ```
 
 A post about an event links to that event's page, so the date, venue and
-register button only need to be written once, in the event's file.
+register button only need to be written once, in the event's file. A post about
+a project does the same with the project's page.
 
 ---
 

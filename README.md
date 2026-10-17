@@ -5,7 +5,7 @@ Electronic Engineering.
 
 | Folder | What |
 |---|---|
-| `QuEST_Website/` | The club website (Astro). **Start with its [README](QuEST_Website/README.md).** |
+| `QuEST_Website/` | The club website (Astro), and its redesign in `QuEST_Website/redesign/`. **Start with its [README](QuEST_Website/README.md)**; the redesign's hand-over (using it, adding events and news, developing it) is [there too](QuEST_Website/README.md#the-redesign-using-it-and-taking-it-forward). |
 | `QCC_qfest/` | The Quantum Fall Fest booth: demos, activity sheets, instructor notes. |
 | `QCC_Old_Website/` | The old QCC site, kept as a record. |
 | `QuEST_resource/` | Logos, posters, photographs and initiative material. |

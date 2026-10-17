@@ -10,6 +10,13 @@ developer setup is at the bottom.
 
 > **Owner:** Publicity Lead — Chanoknon Kongkanta (Jerry), `chanokno001@e.ntu.edu.sg`
 
+**Two versions of the site live in this folder, and they share one set of content.**
+The live site is the Astro build (`src/`). The redesign is a working prototype
+in `redesign/`, which reads the same files in `src/content/`. Add an event once
+and it appears in both. The redesign has its own hand-over:
+[how to use it](#using-the-redesign), [the everyday jobs](#the-everyday-jobs),
+and [how to develop it](#developing-the-redesign).
+
 ---
 
 ## What exists, and what you are inheriting
@@ -197,7 +204,7 @@ them. Four of them need one sentence from a person who was there:
 | File | What is needed |
 |---|---|
 | `fallfest-cqt-group` | consent from ~30 people (see item 5 above) |
-| `qid26-group` | nobody could tell me what QID26 was — needs a caption |
+| `qid26-group` | consent only. Captioned from its sign (organised by the National Quantum Office Singapore and Quantinuum); the redesign shows it because the President asked |
 | `collab-workshop-board` | which event was this? |
 | `gia-lai-quantum-year` | what was QuEST's role? |
 | `pitch-stage` | which event — and it shows third-party portraits on screen |
@@ -282,8 +289,9 @@ points at people who read that inbox.
 - [ ] Consent for the CQT group photo
 - [ ] Captions for the four unidentified photographs
 - [ ] **A flat, one-colour version of the mark.** The gradient mark cannot be a
-      32px favicon or a one-colour print. The tab carries the bra-ket alone as a
-      stopgap. This is a real design job and it is yours.
+      32px favicon or a one-colour print. The live site's tab carries the bra-ket
+      alone as a stopgap; the redesign's tab carries a crop of the full mark on a
+      white or dark tile, also a stopgap. This is a real design job and it is yours.
 - [ ] **An OG image** — the picture that appears when a link is shared in
       Telegram or WhatsApp. Currently falls back to the whiteboard photograph,
       which is decent but not designed.
@@ -301,6 +309,182 @@ points at people who read that inbox.
 If you are reading this because you have just taken over Publicity: make one
 change to the site — a caption, a link, an event — **while the outgoing lead is
 still answering messages.** Not after. That is the handover.
+
+---
+---
+
+# The redesign: using it, and taking it forward
+
+`redesign/` is the next version of the site, built as a working prototype. It is
+one long page, and **every other page opens over it as a "letter"**: a link
+inside a letter draws the next one up over it, and the one beneath steps back
+with its top edge showing. It reads its content from `src/content/`, the same
+files as the live site, so the everyday jobs below are the same files you
+already edit. `redesign/PLAN.md` has every design decision and the reasons.
+
+## Using the redesign
+
+### Open it on your own computer
+
+```bash
+cd QuEST_Website
+node redesign/build-content.mjs        # re-run after any change in src/content/
+python3 -m http.server 4400            # leave this running
+```
+
+Then open **http://localhost:4400/redesign/**. Start the server from
+`QuEST_Website/`, not from `redesign/`: the page loads the photographs from
+`../public/` and the demos' physics from `../booth-src/`.
+
+After changing anything, reload with **Cmd+Shift+R** (Ctrl+Shift+R on Windows).
+A plain reload can show the old files, and the tab icon is the most stubborn.
+
+### A tour, for anyone checking a change
+
+| Where | What it is |
+|---|---|
+| Top row | The mark (once you scroll), Demos, Events, Calendar, Projects, People, the light/dark switch, **Join QuEST**, and **Menu**. Below 1080px wide the five shortcuts move into the menu. |
+| Menu | Every page, as rows. Explore, Demos, Events, About and Join open a list of their pages; a highlight follows the pointer from row to row. |
+| The page, top to bottom | The hero (Young's two-source interference: source B leans toward your pointer), what we do, **the demos** (a reel that plays each one, then five rows), why quantum and why now, the "Start from nothing" track, a session photograph with **QuEST right now** over it, the timeline from Planck to the club, our story, the committee, partners, Join. |
+| Letters | Every page (an event, a project, a demo, the calendar) opens as a letter. Put the top one down with **Back to …**, Escape, the browser's back button, or a click on the edge of the letter beneath. The cross closes them all. Each letter has its own address, such as `#/page/calendar` or `#/event/quantum-from-scratch`, so it can be shared. |
+| Calendar | News first, then the month (Monday first, Singapore dates, today marked), then every event as a list. Open it from the top row, the menu, the Events page, or "The calendar" in the *QuEST right now* table. |
+| Light and dark | Both are designed. Check both before calling anything done. |
+
+## The everyday jobs
+
+Each of these is a text file. After saving, run
+`node redesign/build-content.mjs` and reload, and the redesign shows it; the live
+site picks the same file up on its next build. Templates for every field are in
+`CONTENT.md`.
+
+### Plan an event that is coming up
+
+Add a file to `src/content/events/` with `status: upcoming`, a future `start`,
+and the `registerUrl` if there is a form. That one file puts the event in:
+
+- the **calendar**, on its days, and the month it opens on;
+- **News**, as the "Next session" block at the top of the calendar page;
+- "Coming up" on the calendar and "Upcoming" on the Events page;
+- **Next session** in the *QuEST right now* table;
+- the live site's `/events`, and the registration row on `/links`.
+
+An event counts as coming up only while `status: upcoming` **and** its date is in
+the future, so nothing advertises a session that has already happened.
+
+### After the event
+
+Set `status: past`, then add the photographs (see *Add a photograph* above;
+consent first). The first photo in `photos` becomes the large picture at the top
+of the event's page; the rest go under "More pictures from the day". Its date
+becomes **Last session** in *QuEST right now*. Do not delete the file.
+
+### Post news: promote an event, or write about a new project
+
+News is the club's blog. Add a file to `src/content/news/`:
+
+```markdown
+---
+title: "Help us build this website"
+date: 2027-01-12                   # the day you post it
+summary: "One or two sentences. This is what the card shows."
+project: "quest-website"           # the project's filename (or event: "..." for an event)
+image: "acads-laptops"             # optional: an id from src/content/media/
+pinned: true                       # optional: keeps it first
+status: published                  # published, draft (hidden) or archived
+---
+
+The post itself. Write it like the start of a conversation: what the work is,
+who it is for, and what a new member would actually do.
+```
+
+`project:` and `event:` must name a file that exists, or the live site refuses
+to build. It appears as a card under **News** on the calendar page and opens as its own
+letter, with a button to the event or project it names, so dates, venues and
+team details are only ever written once. `status: draft` keeps a post hidden
+while you write it.
+
+### Add a new project, with its own page
+
+Add a file to `src/content/projects/` (the template and the four headings are in
+`CONTENT.md`). It appears under **Projects**, under **Research** if its `area` is
+`research` or `algorithms`, and with `status: open` it counts toward **Open to
+join** in *QuEST right now* and gets a "how to join" button. Then post a news
+item with `project:` set to its filename to announce it.
+
+### What updates itself, and what does not
+
+| Updates itself from the content | Written by hand in `redesign/index.html` |
+|---|---|
+| The calendar, News, the Events and Projects pages, every letter | The timeline's club entries ("Our story"), the history entries before them, and their photographs |
+| *QuEST right now*: committee, open projects, partners, resources, last and next session | *QuEST right now*: "180+" members, "5" live demos and Fall Fest's "5 days" |
+| The people page, links, resources, the Quantum Stack | The five demo rows and the reel's captions (also `REEL` in `redesign.js`) |
+
+When a milestone happens, add it to `src/content/milestones/` **and** to the
+`club-era` list in `redesign/index.html`, until the timeline is moved onto the
+content (see *Taking it to the live site*).
+
+## Developing the redesign
+
+### The files
+
+| File | What is in it |
+|---|---|
+| `redesign/index.html` | The page itself, section by section, with a comment above each. |
+| `redesign/redesign.css` | Every style. The colour tokens are at the top: light first, then dark, written twice (the system setting and the switch). No colour anywhere else. |
+| `redesign/redesign.js` | The page's behaviour: theme and tab icon, top row, menu and its highlight, the hero field, the thread and the demo reel, entrances, *QuEST right now*, the timeline, the marquee. One module per heading. |
+| `redesign/sheets.js` | The letters: the address router, every page (`VIEWS` and `PAGES`), the calendar, the demo explorers, and the letter stack. |
+| `redesign/plots.js` | The live plots, drawn from `booth-src/physics.js`, the same file the booth's tests check. The fifth demo (H₂ by phase estimation) is here too. |
+| `redesign/build-content.mjs` | Reads `src/content/` into `redesign/data/content.js`, leaving out any photograph whose consent is `pending`. |
+| `redesign/data/content.js` | Generated. Never edit it; edit the content and rebuild. |
+| `redesign/assets/` | The tab icons, the committee photograph and Young's engraving. |
+| `redesign/PLAN.md` | The design, the reasons, the open decisions, and the build order. |
+
+### Adding a page
+
+Add an entry to `PAGES` in `redesign/sheets.js` with a `crumb`, a `title`, a
+short `name` (it becomes "Back to …" on the letter above) and a `body`, then link
+to `#/page/<its-name>` and add it to the menu in `index.html`. A new kind of page
+with its own address (as `#/news/...` was added) needs three things: the kind in
+`parse()`, an entry in `VIEWS`, and the matching live-site path in `PATHS`.
+
+### Rules that hold on every change
+
+1. **Colours only from the tokens** at the top of `redesign.css`, in both
+   themes. Check light, dark, and a phone width (390px).
+2. **The logo trap:** `quest-logo-light.png` is drawn dark, for light grounds.
+3. **Consent:** a `pending` photograph never ships. The one exception today is
+   the QID26 group photo, written straight into `index.html` because the
+   President asked for it; set it to `granted` once confirmed, before launch.
+4. **Never invent content.** Every number in *QuEST right now* and every date in
+   the calendar comes from a file.
+5. **No " · " separators** in anything a visitor reads. Use words, a colon, a
+   comma, or space.
+6. **Writing:** short sentences, the club's own words, nothing from the banned
+   list in this file.
+
+### Checks before calling a change done
+
+From `QuEST_Website/`:
+
+```bash
+node ../.claude/skills/design-taste-frontend/scripts/lint.mjs redesign
+node ../.claude/skills/design-taste-frontend/scripts/inspect.mjs redesign/index.html
+```
+
+The lint should report nothing. The inspector should report **0 FAIL** and these
+four warnings, which are deliberate: the italic "scratch." in the headline, no
+video (the live plots replace it), the timeline holding its heading for three
+screens, and the timeline scrolling sideways on a phone. Then open every letter
+you touched, in both themes and at phone width.
+
+### Taking it to the live site
+
+The redesign is not deployed. `redesign/PLAN.md` §11 is the build order for
+moving it into Astro: the letters become real pages with View Transitions, the
+calendar becomes `/events/calendar`, news becomes `/news/[slug]`, and the
+timeline's hand-written entries move onto `src/content/milestones/`. §9 lists
+the changes to `CLAUDE.md` it needs the President's and the Software lead's
+agreement on first.
 
 ---
 ---
@@ -343,7 +527,7 @@ committed.
 | `public/images/`, `public/video/` | Optimised output. **Committed**, so CI needs neither the heavy originals nor ffmpeg. |
 | `media-src/` | Original photographs. Not committed, never ships. |
 | `scripts/` | The image pipeline, the demo extractor, the offline zip. |
-| `redesign/` | The proposed restructure: `PLAN.md` and a working homepage prototype. Not built or deployed. |
+| `redesign/` | The redesign: a working prototype of the whole site and its `PLAN.md`. Not built or deployed yet. See [Developing the redesign](#developing-the-redesign). |
 
 ## The rules that are not negotiable
 

@@ -282,6 +282,7 @@
       const n = (Q.news || {})[id];
       if (!n) return null;
       const ev = n.event && Q.events[n.event];
+      const pr = n.project && Q.projects[n.project];
       return {
         crumb: 'News', title: n.title, name: 'the news',
         body: `
@@ -290,6 +291,7 @@
           ${n.image ? figure(n.image, 'sheet-lead') : ''}
           <div class="prose">${n.html}</div>
           ${ev ? `<p class="sheet-cta"><a class="pill pill-ink" href="#/event/${ev.id}"><span class="pill-label">${isUpcoming(ev) ? 'The event, and how to come' : 'The event, with all its photos'}</span><span class="pill-disc" aria-hidden="true">${ARROW}</span></a></p>` : ''}
+          ${pr ? `<p class="sheet-cta"><a class="pill pill-ink" href="#/project/${pr.id}"><span class="pill-label">${pr.status === 'open' ? 'The project, and how to join it' : 'About the project'}</span><span class="pill-disc" aria-hidden="true">${ARROW}</span></a></p>` : ''}
           <p class="sheet-next"><a class="text-link" href="#/page/calendar">All the news, and the calendar</a></p>`,
       };
     },

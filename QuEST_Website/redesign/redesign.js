@@ -148,15 +148,23 @@
        so moving down the menu reads as one partition lighting at a time. */
     const nav = $('.menu-nav', menu), hl = $('[data-menu-hl]', menu);
     const ROW = '.menu-list > li > a, .menu-parent, .menu-sub a';
+    /* Layout offsets, not the on-screen box: the rows slide in when the menu
+       opens, and the highlight belongs where a row comes to rest, not where
+       it happens to be mid-slide. */
+    const restingBox = (el) => {
+      let x = 0, y = 0, p = el;
+      while (p && p !== nav) { x += p.offsetLeft; y += p.offsetTop; p = p.offsetParent; }
+      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    };
     const place = (el) => {
       if (!nav || !hl || !el) return;
-      const n = nav.getBoundingClientRect(), r = el.getBoundingClientRect();
+      const r = restingBox(el);
       const first = !nav.classList.contains('has-hl');
       if (first) hl.style.transition = 'none';
-      hl.style.setProperty('--hx', `${(r.left - n.left).toFixed(1)}px`);
-      hl.style.setProperty('--hy', `${(r.top - n.top).toFixed(1)}px`);
-      hl.style.setProperty('--hw', `${r.width.toFixed(1)}px`);
-      hl.style.setProperty('--hh', `${r.height.toFixed(1)}px`);
+      hl.style.setProperty('--hx', `${r.x}px`);
+      hl.style.setProperty('--hy', `${r.y}px`);
+      hl.style.setProperty('--hw', `${r.w}px`);
+      hl.style.setProperty('--hh', `${r.h}px`);
       nav.classList.add('has-hl');
       if (first) { void hl.offsetWidth; hl.style.transition = ''; }
     };

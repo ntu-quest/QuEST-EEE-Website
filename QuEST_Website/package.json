@@ -10,7 +10,9 @@
     "check": "astro check",
     "prepare:content": "node scripts/images.mjs && node scripts/booth.mjs",
     "booth": "node scripts/booth.mjs",
-    "images": "node scripts/images.mjs"
+    "images": "node scripts/images.mjs",
+    "redesign:content": "node redesign/build-content.mjs",
+    "redesign": "node redesign/build-content.mjs && python3 -m http.server 4400"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.2.6",
@@ -22,6 +24,10 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
+    "hast-util-to-html": "^9.0.5",
+    "js-yaml": "^4.1.0",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-to-hast": "^13.2.1",
     "typescript": "^5.8.3"
   }
 }

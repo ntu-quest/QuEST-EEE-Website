@@ -249,10 +249,9 @@ markup and a View Transition.
 | Peek window, magnetic pills, ket | home | off | off |
 | Menu, sheets, letters | everywhere | instant, no tilt | full-screen; "Back to" shrinks to its chevron |
 
-**Budget, honestly:** the prototype loads everything on one page: about 98 KB of script plus 50 KB of
-content (≈22 KB of script minified and gzipped, plus 16 KB of content gzipped). That is over the 30 KB
-homepage budget. In Astro the sheets are real pages, so the homepage ships only `redesign.js` and the
-plot loops (~57 KB raw, ~13 KB gzipped, before minification), and each explorer loads only on its own
+**Budget, honestly:** the prototype loads everything on one page: about 130 KB of script plus 54 KB of
+content, before minifying. That is over the 30 KB homepage budget. In Astro the sheets are real pages,
+so the homepage ships only `redesign.js` and the plot loops (about 72 KB raw, before minifying), and each explorer loads only on its own
 demo page. Hitting 30 KB raw on the homepage means minifying and splitting the plot loops so only Grover
 loads up front.
 
@@ -266,7 +265,7 @@ These change `Planning files/CLAUDE.md`, and are the President's and Software le
    fallback; entrance motion hangs off `html.js`, fires once, is skipped under reduced motion.*
 2. **Interactivity.** Keep one interactive *background* (the field). Add an allow-list of foreground
    interactions (§8).
-3. **The logo below 96px.** The top-row mark is 52px (44px on phones), at your request to use the real
+3. **The logo below 96px.** The top-row mark is under 50px, at your request to use the real
    logo there. The contract forbids the gradient mark below 96px because "EST" weakens. Either accept it in
    the header only, or commission the flat one-colour mark the contract already asks for.
 4. **Colour roles.** New tokens added (§4); "indigo = navigates" retired for chrome.
@@ -320,7 +319,7 @@ One PR per step, preview deploy on each.
 | 2. Plots | `plots.js` as a module beside `physics.js`; retire the videos from `MotionFigure` |
 | 3. Home | Port the prototype section by section, fed by the existing collections |
 | 4. Demos | `/demos` index · explorer layout on the four booth pages · the H₂ page |
-| 5. Work | Projects and events |
+| 5. Work | Projects and events · the calendar (`/events/calendar`) and news (`/news/[slug]`, the `news` collection) |
 | 6. Explore and About | What we do · stack · resources · journey · culture · people · network |
 | 7. Conversion | Join · links · contact · 404 |
 | 8. QA | Lighthouse ≥95 · JS budget · both-theme contrast · keyboard · reduced motion · booth test suite |

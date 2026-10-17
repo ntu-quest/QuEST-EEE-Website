@@ -326,15 +326,33 @@ already edit. `redesign/PLAN.md` has every design decision and the reasons.
 
 ### Open it on your own computer
 
+You need **Node 22 or newer** and **Python 3** (already on a Mac). The first
+time, in a fresh clone:
+
 ```bash
 cd QuEST_Website
-node redesign/build-content.mjs        # re-run after any change in src/content/
-python3 -m http.server 4400            # leave this running
+npm install                # the libraries, including the content builder's
+npm run prepare:content    # makes the offline demo zip the page links to
 ```
 
-Then open **http://localhost:4400/redesign/**. Start the server from
-`QuEST_Website/`, not from `redesign/`: the page loads the photographs from
-`../public/` and the demos' physics from `../booth-src/`.
+Every time after that:
+
+```bash
+npm run redesign           # rebuilds the content, then serves the folder
+```
+
+Then open **http://localhost:4400/redesign/** and leave the terminal open
+(Ctrl+C stops it). `npm run redesign` is the two steps
+`node redesign/build-content.mjs` (re-run after any change in `src/content/`) and
+`python3 -m http.server 4400`, run from `QuEST_Website/`. It has to be served
+from there, not from `redesign/`: the page loads the photographs from
+`../public/` and the demos' physics from `../booth-src/`. If it says "Address
+already in use", the server is already running; just open the link.
+
+`npm install` may warn that it held back install scripts (for `sharp` and
+`fsevents`). That is newer npm being careful and is fine: `sharp` ships ready-made.
+If `npm run images` ever fails with a `sharp` error, run
+`npm install-scripts approve sharp` and install again.
 
 After changing anything, reload with **Cmd+Shift+R** (Ctrl+Shift+R on Windows).
 A plain reload can show the old files, and the tab icon is the most stubborn.
@@ -437,6 +455,7 @@ content (see *Taking it to the live site*).
 | `redesign/build-content.mjs` | Reads `src/content/` into `redesign/data/content.js`, leaving out any photograph whose consent is `pending`. |
 | `redesign/data/content.js` | Generated. Never edit it; edit the content and rebuild. |
 | `redesign/assets/` | The tab icons, the committee photograph and Young's engraving. |
+| `redesign/checks/` | The two browser checks: every link and letter, and the letter stack against the back button. |
 | `redesign/PLAN.md` | The design, the reasons, the open decisions, and the build order. |
 
 ### Adding a page
@@ -474,8 +493,68 @@ node ../.claude/skills/design-taste-frontend/scripts/inspect.mjs redesign/index.
 The lint should report nothing. The inspector should report **0 FAIL** and these
 four warnings, which are deliberate: the italic "scratch." in the headline, no
 video (the live plots replace it), the timeline holding its heading for three
-screens, and the timeline scrolling sideways on a phone. Then open every letter
-you touched, in both themes and at phone width.
+screens, and the timeline scrolling sideways on a phone.
+
+Then the two browser checks in `redesign/checks/`, with `npm run redesign`
+serving the page (they use `playwright-cli`; setup is in the
+[root README](../README.md#one-time-setup)):
+
+```bash
+playwright-cli open about:blank
+playwright-cli --raw run-code --filename=redesign/checks/links.js   # every link and letter
+playwright-cli --raw run-code --filename=redesign/checks/stack.js   # letters against the back button
+```
+
+Each prints a summary; anything listed under `problems` needs fixing. Last, open
+every letter you touched, in both themes and at phone width (390px).
+
+### Where the redesign departs from the rules below
+
+The rules under *For developers* are the live site's contract (`CLAUDE.md`). The
+redesign knowingly breaks four of them, each waiting on a decision recorded in
+`redesign/PLAN.md` §9. Do not "fix" these back without that decision:
+
+- **Entrance motion.** Sections rise in as they scroll into view; the contract
+  says every section is visible at rest. The fallback keeps everything visible
+  without script and under reduced motion.
+- **Interactivity.** The contract allows one interactive background. The
+  redesign adds the reel, the explorers, the peek window and the letters.
+- **The logo below 96px.** The top row carries the real mark at under 50px.
+- **Monospace.** The redesign sets data in Manrope with tabular figures, because
+  the design checker fails monospace outside code; the live site uses DM Mono.
+
+### Where the work stands
+
+Done in the prototype: every page as a letter, the five live demos, the
+timeline, *QuEST right now*, the calendar with news, both themes, phone layouts,
+and the checks above all passing.
+
+Still to do, roughly in order:
+
+1. **Decide the four rule changes** above (`PLAN.md` §9), with the President
+   and the Software lead.
+2. **Confirm the content flagged in `PLAN.md` §10**: "180+ members", consent for
+   the QID26 photograph, and whether the two quantum Fourier transform photos
+   belong to Quantum from Scratch. Replace the two starting news posts with real
+   ones.
+3. **Move the timeline onto content**: the club's entries and the history
+   entries are written by hand in `index.html`; they should come from
+   `src/content/milestones/` (and a history collection).
+4. **Port to Astro**, one step at a time, following `PLAN.md` §11. The calendar
+   and news become real pages (`/events/calendar`, `/news/[slug]`), and each
+   letter becomes a page reached with a View Transition.
+5. **Bring the script down to budget.** The prototype loads about 130 KB of
+   script and 54 KB of content on one page (before minifying); the plan's
+   homepage budget is 30 KB. Splitting it per page during the port does most of
+   this.
+6. **Commission the flat one-colour mark** for the tab icon and small sizes.
+
+### Working on it with Claude Code
+
+Start Claude Code from the repository root, so it picks up the skills in
+`.claude/skills/`, and point it at three files first: `Planning files/CLAUDE.md`
+(the contract), `redesign/PLAN.md` (the design and its reasons) and this README.
+Ask it to run the checks above before it calls a change done.
 
 ### Taking it to the live site
 

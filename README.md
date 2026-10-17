@@ -52,7 +52,9 @@ website's contract in `QuEST_Website/Planning files/CLAUDE.md`. Where they
 disagree, **the club's rules apply.** The known clashes:
 
 - **Monospace.** `design-taste-frontend` bans monospace outside code blocks. The
-  site uses DM Mono for labels and data, on purpose.
+  live site uses DM Mono for labels and data, on purpose; the redesign follows
+  the skill and sets data in Manrope, pending the decision in
+  `QuEST_Website/redesign/PLAN.md` §9.
 - **Scroll animation.** `design-taste-frontend` requires entrance animations as
   sections scroll in. The site requires every section to be visible at rest, so
   shared links preview correctly.

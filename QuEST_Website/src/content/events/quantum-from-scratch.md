@@ -8,7 +8,7 @@ format: "Workshop — history, then linear algebra groundwork"
 difficulty: intro
 audience: "Anyone. This is the session that assumes nothing."
 status: past
-photos: ["poster-quantum-from-scratch"]
+photos: ["acads-classroom", "acads-linear-independence", "acads-unitary", "acads-laptops", "acads-session-wide", "poster-quantum-from-scratch"]
 learningOutcomes:
   - "Explore Feynman's argument for why a quantum computer should exist at all"
   - "Reflect on four quantum algorithms and what each one is for"

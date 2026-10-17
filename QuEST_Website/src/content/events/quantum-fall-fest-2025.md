@@ -4,11 +4,11 @@ series: showcase
 start: 2025-12-08T09:00:00+08:00
 end: 2025-12-13T18:00:00+08:00
 venue: "NTU and NUS campuses, and the Centre for Quantum Technologies"
-format: "Talks · workshops · lab visit · panel discussion"
+format: "Talks, workshops, a lab visit and a panel discussion"
 difficulty: all
 audience: "Students across Singapore's universities, polytechnics and junior colleges"
 status: past
-photos: ["fallfest-speaker", "fallfest-panel"]
+photos: ["fallfest-panel", "workshop-whiteboard", "fallfest-speaker"]
 learningOutcomes:
   - "Foundational mathematics through to quantum circuits and algorithms"
   - "Quantum cryptography and quantum machine learning"

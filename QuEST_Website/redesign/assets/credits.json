@@ -1,0 +1,50 @@
+[
+ {
+  "file": "assets/young-diffraction.webp",
+  "media": "image",
+  "ref": "commons:2468490",
+  "title": "Young Diffraction",
+  "creator": null,
+  "creatorUrl": null,
+  "date": null,
+  "license": "public domain",
+  "licenseCode": "pd",
+  "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+  "creditRequired": false,
+  "page": "https://commons.wikimedia.org/wiki/File:Young_Diffraction.png",
+  "via": "Wikimedia Commons",
+  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Young_Diffraction.png/1920px-Young_Diffraction.png",
+  "width": 1920,
+  "height": 852,
+  "bytes": 1001901,
+  "credit": "\"Young Diffraction\", public domain, via Wikimedia Commons",
+  "notes": [
+   "Re-encoded to WebP (1200px and 800px, greyscale) to stay under the 180 KB image budget."
+  ],
+  "saved": "2026-10-17T07:53:17.412Z"
+ },
+ {
+  "file": "assets/solvay-1927.webp",
+  "media": "image",
+  "ref": "commons:21332727",
+  "title": "Solvay conference 1927",
+  "creator": "Benjamin Couprie",
+  "creatorUrl": null,
+  "date": "1927",
+  "license": "public domain",
+  "licenseCode": "pd",
+  "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+  "creditRequired": false,
+  "page": "https://commons.wikimedia.org/wiki/File:Solvay_conference_1927.jpg",
+  "via": "Wikimedia Commons",
+  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/Solvay_conference_1927.jpg/1280px-Solvay_conference_1927.jpg",
+  "width": 1280,
+  "height": 926,
+  "bytes": 311390,
+  "credit": "\"Solvay conference 1927\" by Benjamin Couprie, public domain, via Wikimedia Commons",
+  "notes": [
+   "Re-encoded to WebP at 900px to stay under the 180 KB image budget."
+  ],
+  "saved": "2026-10-17T09:26:21.362Z"
+ }
+]

@@ -317,6 +317,10 @@ npm run dev               # http://localhost:4321
 npm run build             # static output to dist/
 ```
 
+Using Claude Code? The repository ships design, accessibility-audit and browser
+skills in `.claude/skills/`. Start Claude Code from the repository root, and see
+the [root README](../README.md#claude-code-skills-in-this-repo) for setup.
+
 `npm run build` runs `prepare:content` first, so CI needs nothing extra.
 `ffmpeg` is needed only for the GIF → video step; without it that step is
 skipped and everything else still builds, because the converted video is
@@ -339,6 +343,7 @@ committed.
 | `public/images/`, `public/video/` | Optimised output. **Committed**, so CI needs neither the heavy originals nor ffmpeg. |
 | `media-src/` | Original photographs. Not committed, never ships. |
 | `scripts/` | The image pipeline, the demo extractor, the offline zip. |
+| `redesign/` | The proposed restructure: `PLAN.md` and a working homepage prototype. Not built or deployed. |
 
 ## The rules that are not negotiable
 

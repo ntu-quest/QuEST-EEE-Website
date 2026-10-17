@@ -1,6 +1,6 @@
 ---
 file: "acads_session_wide.jpg"
-alt: "A wide view of a QuEST session: students at tables with laptops, a camera on a tripod recording the room."
+alt: "Students at a table listening to a talk with laptops open, a phone on a tripod recording, and a quantum Fourier transform slide on the wall screen."
 consent: granted
 usage: gallery
 aspect: "16 / 9"

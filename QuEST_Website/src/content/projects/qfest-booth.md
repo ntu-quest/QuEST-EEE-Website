@@ -1,5 +1,5 @@
 ---
-title: "The Fall Fest booth — four verified physics stations"
+title: "The EEE clubs booth for freshmen — four verified physics stations"
 summary: "Four interactive quantum demos that run offline in a browser, backed by a Python test suite that checks every number against the original papers."
 area: software
 difficulty: intermediate
@@ -7,7 +7,6 @@ status: active
 started: "2025"
 featured: true
 order: 20
-cover: "vqe-loop"
 outputs:
   - label: "Try the demos"
     url: "/demos"
@@ -15,7 +14,7 @@ outputs:
 
 ## The problem
 
-A showcase booth has ninety seconds to make quantum mechanics land with someone walking past, and
+A clubs booth for EEE freshmen has ninety seconds to make quantum mechanics land with someone walking past, and
 it has to do it on a laptop with no network. Slideware does not survive that; nor does anything
 that needs a CDN.
 

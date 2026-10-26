@@ -66,7 +66,7 @@ async function images() {
     console.log('  (no media-src/ — using the committed optimised images)');
     return;
   }
-  const files = (await readdir(SRC)).filter((f) => /\.(jpe?g|png)$/i.test(f));
+  const files = (await readdir(SRC)).filter((f) => !f.startsWith('._') && /\.(jpe?g|png)$/i.test(f));
 
   for (const file of files) {
     const input = path.join(SRC, file);
@@ -113,7 +113,7 @@ async function video() {
     return;
   }
   await mkdir(VID_OUT, { recursive: true });
-  const gifs = (await readdir(GIF_SRC)).filter((f) => f.endsWith('.gif'));
+  const gifs = (await readdir(GIF_SRC)).filter((f) => !f.startsWith('._') && f.endsWith('.gif'));
 
   for (const gif of gifs) {
     const base = gif.replace(/\.gif$/, '');

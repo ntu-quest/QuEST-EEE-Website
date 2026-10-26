@@ -7,22 +7,18 @@
   "trailingSlash": false,
   "headers": [
     {
-      "comment": "Astro fingerprints everything in _astro/, so it can be cached forever.",
       "source": "/_astro/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
-      "comment": "Images and video are content-addressed by name and change only when re-exported.",
       "source": "/(images|video|brand)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
     },
     {
-      "comment": "The booth runtime is shared with the offline bundle and changes rarely.",
       "source": "/(demos|demo-wire)/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }]
     },
     {
-      "comment": "No tracking beyond a privacy-preserving page count (BLUEPRINT §02, Responsibility). These headers are the site keeping that promise.",
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },

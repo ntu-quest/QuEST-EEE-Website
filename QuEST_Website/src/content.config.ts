@@ -16,7 +16,7 @@ import { defineCollection, z, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const md = (dir: string) =>
-  glob({ pattern: '**/*.{md,mdx}', base: `./src/content/${dir}` });
+  glob({ pattern: ['**/*.{md,mdx}', '!**/._*'], base: `./src/content/${dir}` });
 
 /* -------------------------------------------------------------------------- */
 

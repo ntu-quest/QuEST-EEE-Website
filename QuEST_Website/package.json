@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/images.mjs && node scripts/booth.mjs && astro build",
+    "build": "node scripts/images.mjs && node scripts/booth.mjs && node redesign/build-content.mjs && astro build && node scripts/ship-redesign.mjs",
+    "build:old": "node scripts/images.mjs && node scripts/booth.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "prepare:content": "node scripts/images.mjs && node scripts/booth.mjs",

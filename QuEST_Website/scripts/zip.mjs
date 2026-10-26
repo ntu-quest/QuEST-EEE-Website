@@ -41,7 +41,7 @@ function dosStamp(date) {
 async function walk(dir, base = dir) {
   const out = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (entry.name === '.DS_Store') continue;
+    if (entry.name === '.DS_Store' || entry.name.startsWith('._')) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) out.push(...await walk(full, base));
     else out.push({ full, name: path.relative(base, full).split(path.sep).join('/') });

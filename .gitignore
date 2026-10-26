@@ -1,3 +1,8 @@
 # Working files written by the Claude Code skills in .claude/skills/
 .taste-skill/
 .playwright-cli/
+
+# macOS metadata and external-drive AppleDouble resource forks
+.DS_Store
+._*
+

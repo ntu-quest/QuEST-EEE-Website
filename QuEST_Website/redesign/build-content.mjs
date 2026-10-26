@@ -34,7 +34,7 @@ const markdown = (text) => toHtml(toHast(fromMarkdown(text.trim())));
 function collection(name) {
   const dir = join(CONTENT, name);
   const out = {};
-  for (const file of readdirSync(dir).filter((f) => /\.mdx?$/.test(f)).sort()) {
+  for (const file of readdirSync(dir).filter((f) => !f.startsWith('._') && /\.mdx?$/.test(f)).sort()) {
     const raw = readFileSync(join(dir, file), 'utf8');
     const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
     const data = match ? yaml.load(match[1]) : {};

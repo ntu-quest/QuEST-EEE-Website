@@ -3,6 +3,7 @@ dist/
 .astro/
 .vercel/
 .DS_Store
+._*
 
 # The ORIGINAL photographs are not committed — several are 5–10 MB, and
 # CLAUDE.md forbids committing an image over 500 KB. They live in the club's
